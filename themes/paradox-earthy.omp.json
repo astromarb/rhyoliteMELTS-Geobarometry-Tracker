@@ -1,0 +1,85 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+        {
+          "type": "session",
+          "style": "diamond",
+          "leading_diamond": "",
+          "trailing_diamond": "",
+          "foreground": "#e8e4d8",
+          "background": "#6b4423",
+          "template": " {{ .UserName }}@{{ .HostName }} "
+        },
+        {
+          "type": "path",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "foreground": "#e8e4d8",
+          "background": "#3b4a2f",
+          "properties": {
+            "style": "full"
+          },
+          "template": "  {{ .Path }} ",
+          "folder_separator_template": "<#c9a96e>  </>"
+        },
+        {
+          "type": "git",
+          "style": "powerline",
+          "powerline_symbol": "",
+          "foreground": "#1f2419",
+          "background": "#c9a96e",
+          "background_templates": [
+            "{{ if or (.Working.Changed) (.Staging.Changed) }}#e8e4d8{{ end }}",
+            "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#6b4423{{ end }}",
+            "{{ if gt .Ahead 0 }}#3b4a2f{{ end }}",
+            "{{ if gt .Behind 0 }}#1f2419{{ end }}"
+          ],
+          "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }}  {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }}  {{ .Staging.String }}{{ end }} ",
+          "properties": {
+            "branch_max_length": 25,
+            "fetch_status": true,
+            "fetch_upstream_icon": true
+          }
+        }
+      ]
+    },
+    {
+      "type": "prompt",
+      "alignment": "right",
+      "segments": [
+        {
+          "type": "executiontime",
+          "style": "diamond",
+          "leading_diamond": "",
+          "trailing_diamond": "",
+          "foreground": "#e8e4d8",
+          "background": "#1f2419",
+          "properties": {
+            "threshold": 500,
+            "style": "austin"
+          },
+          "template": " {{ .FormattedMs }} "
+        }
+      ]
+    },
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "newline": true,
+      "segments": [
+        {
+          "type": "text",
+          "style": "plain",
+          "foreground": "#c9a96e",
+          "template": "❯ "
+        }
+      ]
+    }
+  ],
+  "version": 2,
+  "final_space": true
+}
