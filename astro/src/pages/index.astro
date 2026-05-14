@@ -1,0 +1,21 @@
+---
+// Phase 1 parity shell. The original <body> markup is imported verbatim
+// as raw HTML and injected with set:html so behaviour matches index.html
+// 1:1 while we begin component extraction in later phases.
+import body from '../_body.html?raw';
+import '../styles/global.css';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self' blob:; child-src 'self' blob:" />
+  <title>rhyolite-MELTS Tracker v0.20</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌋</text></svg>" />
+</head>
+<body>
+  <Fragment set:html={body} />
+  <script is:inline src="/legacy.js"></script>
+</body>
+</html>

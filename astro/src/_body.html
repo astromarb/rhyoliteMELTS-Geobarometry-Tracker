@@ -1,0 +1,467 @@
+
+<!-- ─────────────── ONBOARDING OVERLAY (first-run wizard) ─────────────── -->
+<div id="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="ob-title">
+
+  <!-- Step 1 — Choose path -->
+  <div class="ob-card" id="ob-step-choose">
+    <div class="ob-title" id="ob-title">🌋 Welcome to rhyolite-MELTS Tracker</div>
+    <div class="ob-sub">
+      A petrology Monte-Carlo simulation companion. To get started, either continue an existing
+      project (from a previously exported JSON file) or set up a new one.
+      <br><br>
+      <span style="color:var(--text-muted)">All data is stored locally in this browser. Export to JSON regularly to back up.</span>
+    </div>
+
+    <div class="ob-paths">
+      <button class="ob-path-btn" type="button" onclick="document.getElementById('ob-existing-file').click()">
+        <span class="ob-path-icon">📂</span>
+        <span class="ob-path-title">Load existing project</span>
+        <span class="ob-path-sub">Pick a JSON file you previously exported with this tool. Your existing samples, runs, and settings will be restored.</span>
+      </button>
+      <button class="ob-path-btn" type="button" onclick="obShowNewProject()">
+        <span class="ob-path-icon">✨</span>
+        <span class="ob-path-title">Start a new project</span>
+        <span class="ob-path-sub">Set up project identity (title, owner, citation) and define the geological units in your study.</span>
+      </button>
+    </div>
+
+    <input type="file" id="ob-existing-file" accept=".json" style="display:none" onchange="obHandleExistingFile(event)">
+
+    <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--text-muted)">
+      v<span id="ob-version-label"></span> · You can skip this and configure later, but you'll want to set citation info before publishing.
+      <br><a href="#" onclick="event.preventDefault();obSkip()" style="color:var(--blue)">Skip for now</a>
+    </div>
+  </div>
+
+  <!-- Step 2 — New project form -->
+  <div class="ob-card ob-form" id="ob-step-new" style="display:none">
+    <div class="ob-title">✨ New Project</div>
+    <div class="ob-sub">Fill in what you know now — every field can be edited later in Settings.</div>
+
+    <div class="ob-section-title">Project identity</div>
+
+    <label for="ob-title-in">Project Title <span style="color:var(--red)">*</span></label>
+    <input id="ob-title-in" type="text" placeholder="e.g. Kīlauea Catchment Petrology Study" autocomplete="off">
+
+    <label for="ob-owner-in">Project Owner <span style="color:var(--red)">*</span></label>
+    <input id="ob-owner-in" type="text" placeholder="e.g. Marvi Lastname (M.Sc. candidate)" autocomplete="off">
+
+    <label for="ob-advisors-in">Advisors</label>
+    <input id="ob-advisors-in" type="text" placeholder="e.g. Prof. A. Jones, Dr. B. Lee" autocomplete="off">
+
+    <div class="ob-section-title">Publication / provenance <span style="font-weight:400;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0">(optional now — required before thesis submission)</span></div>
+
+    <label for="ob-citation-in">Citation text (free-form)</label>
+    <textarea id="ob-citation-in" rows="3" placeholder="e.g. Lastname, M. (2026). rhyolite-MELTS Tracker [Software]. https://doi.org/10.xxxx/zenodo.xxxxx"></textarea>
+
+    <label for="ob-license-in">License (SPDX identifier)</label>
+    <input id="ob-license-in" type="text" placeholder="e.g. MIT, CC-BY-4.0, GPL-3.0-or-later" autocomplete="off">
+
+    <label for="ob-repo-in">Source repository URL</label>
+    <input id="ob-repo-in" type="url" placeholder="https://github.com/your-handle/melts-tracker" autocomplete="off">
+
+    <label for="ob-doi-in">DOI</label>
+    <input id="ob-doi-in" type="text" placeholder="10.5281/zenodo.0000000" autocomplete="off">
+
+    <div class="ob-section-title">Geological units in this study</div>
+    <div class="ob-callout">
+      ⚠ <strong>Units must be created here first</strong>, then they can be assigned to samples.
+      Add every geological unit you expect to sample. You can rename, recolour, or add more later from Settings.
+    </div>
+    <div class="ob-units-list" id="ob-units-list"><!-- rows injected by JS --></div>
+    <button class="btn btn-sm" type="button" onclick="obAddUnitRow()">＋ Add another unit</button>
+
+    <div class="ob-actions">
+      <button class="btn" type="button" onclick="obBackToChoose()">← Back</button>
+      <button class="btn btn-primary" type="button" onclick="obSubmitNewProject()">Create Project →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Persistent banner (quota / import errors / save-blocked) -->
+<div id="persistent-banner" role="alert" aria-live="assertive">
+  <span id="persistent-banner-msg"></span>
+  <button type="button" onclick="dismissPersistentBanner()" aria-label="Dismiss banner">Dismiss</button>
+</div>
+
+<!-- ─────────────── HEADER (v0.20 redesigned) ─────────────── -->
+<header class="app-header" role="banner">
+  <div class="brand-block">
+    <div class="brand-mark" aria-hidden="true">🌋</div>
+    <div class="brand-text">
+      <div class="brand-name" id="app-title" contenteditable="true" spellcheck="false"
+           role="textbox" aria-label="Project title (click to edit)"
+           title="Click to edit the project title"
+           onblur="saveAppTitle(this.textContent)"
+           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">rhyolite-MELTS Tracker</div>
+      <div class="brand-meta" id="brand-sub-line"><span class="meta-empty">No owner set — configure in Settings</span></div>
+    </div>
+  </div>
+  <div class="header-controls">
+    <span class="version-chip" id="version-chip" title="App version">v0.20</span>
+    <button class="btn btn-sm header-ctrl-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" aria-pressed="false">🌙</button>
+    <button class="btn btn-sm header-ctrl-btn" id="cb-toggle" onclick="toggleCB()" title="Toggle colorblind-safe palette" aria-label="Toggle colorblind mode" aria-pressed="false">👁</button>
+  </div>
+</header>
+<input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+<!-- EDIT-MODE ADD POPUP (body-level to escape nav overflow clipping) -->
+<div id="edit-add-popup">
+  <div id="eap-body">
+  <button class="btn btn-primary btn-sm" onclick="openNewSimset()">＋ Run</button>
+  <button class="btn btn-sm" onclick="openAddSample()" style="background:var(--blue-dim);border-color:var(--blue);color:#fff">＋ Sample</button>
+  <button class="btn btn-sm btn-primary" onclick="openModal('modal-add-batch')">＋ Batch</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- ── Bottom-LEFT utility bar (v0.20) — edit + import/export ── -->
+<div id="util-bar" style="
+  position:fixed;
+  bottom:14px;
+  left:16px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  z-index:9000;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:5px 10px;
+  box-shadow:0 4px 18px rgba(0,0,0,.35);
+">
+  <div class="em-wrap" id="em-wrap">
+    <button class="btn btn-sm" id="em-toggle" onclick="toggleEditMode()" title="Toggle edit mode" aria-label="Toggle edit mode" aria-pressed="false" style="border-radius:50%;width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700">＋</button>
+  </div>
+  <div style="width:1px;height:18px;background:var(--border);margin:0 2px"></div>
+  <button class="btn btn-sm" onclick="exportData()" title="Export data as JSON" aria-label="Export data" style="font-size:11px;padding:3px 9px">⬇ Export</button>
+  <button class="btn btn-sm" onclick="document.getElementById('import-file').click()" title="Import JSON data file" aria-label="Import data" style="font-size:11px;padding:3px 9px">⬆ Import</button>
+</div>
+
+<!-- Add Batch Modal -->
+<div class="modal-bg" id="modal-add-batch">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:420px">
+    <h2>📦 New Batch</h2>
+    <label>Batch Name</label>
+    <input id="batch-name-in" type="text" placeholder="e.g. TIC High-P Series" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:10px">
+    <label>Short Note <span style="font-weight:400;font-style:italic;color:var(--text-muted)">(displayed in Batches view)</span></label>
+    <input id="batch-note-in" type="text" placeholder="Brief description..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:16px">
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeModal('modal-add-batch')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBatch()">Create Batch</button>
+    </div>
+  </div>
+</div>
+<!-- EDIT BATCH MODAL -->
+<div class="modal-bg" id="modal-edit-batch">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:440px">
+    <h2>✏ Edit Batch</h2>
+    <input type="hidden" id="edit-batch-id">
+    <label>Batch Name</label>
+    <input id="edit-batch-name" type="text" placeholder="Batch name..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:10px">
+    <label>Subtitle / Note</label>
+    <input id="edit-batch-note" type="text" placeholder="Short description..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:10px">
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      Batch Colour
+      <input id="edit-batch-color" type="color" value="#58a6ff" style="width:36px;height:28px;border:none;background:none;cursor:pointer;padding:0">
+    </label>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeModal('modal-edit-batch')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditBatch()">Save</button>
+    </div>
+  </div>
+</div>
+<!-- APP BODY — sidebar + pages as siblings (V3 proven pattern) -->
+<div class="app-body">
+
+  <!-- SHARED SIDEBAR (hidden on overview) -->
+  <div class="sidebar" id="main-sidebar">
+    <div class="sidebar-header"><span>Runs (<span id="sb-cnt">0</span>)</span></div>
+    <div class="sb-list" id="sb-list"></div>
+  </div>
+  <!-- Drag-to-resize divider (visible only when sidebar is visible) -->
+  <div class="sidebar-resizer" id="sidebar-resizer" title="Drag to resize sidebar"></div>
+
+  <!-- SAMPLES PAGE -->
+  <div class="page" id="pg-samples"></div>
+
+  <!-- RUNS PAGE (was Tracker) -->
+  <div class="page active" id="pg-runs">
+    <div class="tracker-main" id="tracker-main">
+      <div class="empty"><div class="empty-icon">👈</div><p>Select a simulation set from the sidebar.</p></div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW PAGE (no sidebar) -->
+  <div class="page" id="pg-overview"></div>
+
+  <!-- THRESHOLDING PAGE -->
+  <div class="page" id="pg-thresh"></div>
+
+  <!-- PRESSURE VISUALIZATION PAGE -->
+  <div class="page" id="pg-pvis"></div>
+
+  <!-- SETTINGS PAGE -->
+  <div class="page" id="pg-settings"></div>
+
+  <!-- ─────────────── RIGHT-RAIL NAVIGATION (v0.20) ─────────────── -->
+  <nav class="right-rail" role="navigation" aria-label="App pages">
+    <div class="right-rail-label">Pages</div>
+    <div role="tablist" aria-label="App pages" style="display:flex;flex-direction:column;gap:4px">
+      <button class="nav-tab" data-page="samples"  role="tab" aria-selected="false" onclick="showPage('samples')"><span class="nav-icon" aria-hidden="true">🗄</span><span class="nav-label">Samples</span></button>
+      <button class="nav-tab active" data-page="runs" role="tab" aria-selected="true"  onclick="showPage('runs')"><span class="nav-icon" aria-hidden="true">🔬</span><span class="nav-label">Runs</span></button>
+      <button class="nav-tab" data-page="overview" role="tab" aria-selected="false" onclick="showPage('overview')"><span class="nav-icon" aria-hidden="true">📦</span><span class="nav-label">Batches</span></button>
+      <button class="nav-tab" data-page="thresh"   role="tab" aria-selected="false" onclick="showPage('thresh')"><span class="nav-icon" aria-hidden="true">📊</span><span class="nav-label">P&nbsp;Thresh</span><span id="thresh-badge" class="nav-badge" style="display:none">0</span></button>
+      <button class="nav-tab" data-page="pvis"     role="tab" aria-selected="false" onclick="showPage('pvis')"><span class="nav-icon" aria-hidden="true">🔭</span><span class="nav-label">Pressure&nbsp;Viz</span></button>
+      <button class="nav-tab" data-page="settings" role="tab" aria-selected="false" onclick="showPage('settings')"><span class="nav-icon" aria-hidden="true">⚙</span><span class="nav-label">Settings</span></button>
+    </div>
+  </nav>
+
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Confirm-reset modal (requires typed "RESET" to enable destroy button) -->
+<div class="modal-bg" id="modal-confirm-reset">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:480px;border:1px solid var(--red)">
+    <h2 style="color:var(--red)">🗑 Reset All Data</h2>
+    <p class="modal-sub">This will <strong>permanently erase</strong> every sample, run, threshold, batch, and setting in this browser. Your most recent state will be kept as a backup snapshot (last 3 are retained) — but only for this browser. Export first if you might need this data again.</p>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">To confirm, type <strong style="color:var(--red);font-family:var(--mono)">RESET</strong> below.</p>
+    <input id="reset-confirm-input" type="text" placeholder="Type RESET" autocomplete="off"
+      oninput="document.getElementById('reset-confirm-btn').disabled=this.value.trim()!=='RESET'"
+      style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:8px 10px;font-family:var(--mono);font-size:14px;margin-bottom:14px;letter-spacing:2px">
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-confirm-reset')">Cancel</button>
+      <button class="btn btn-danger" id="reset-confirm-btn" disabled onclick="_doResetData()">Permanently Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- Paste-P Import Summary (lists skipped / unmatched / locked rows) -->
+<div class="modal-bg" id="modal-paste-summary">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:680px">
+    <h2>📋 Paste Import Summary</h2>
+    <p class="modal-sub" id="pps-counts" style="margin-bottom:8px"></p>
+    <div id="pps-details" style="font-family:var(--mono);font-size:11px;max-height:340px;overflow:auto;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:8px;white-space:pre-wrap;word-break:break-all"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modal-paste-summary')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Paste P Results -->
+<div class="modal-bg" id="modal-paste-p">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:520px">
+    <h2>📋 Paste Pressure Results</h2>
+    <p class="modal-sub">Paste your tab-separated table from Excel.<br>
+      Format per line: <code>SAMPLE-MC-NUM-MELTS_Auto&nbsp;&nbsp;VALUE</code><br>
+      A numeric value → 🟩 P solution obtained &nbsp;|&nbsp; <code>-</code> → 🟥 No solution found.<br>
+      Cells not in the list remain unchanged.</p>
+    <input type="hidden" id="pp-sid">
+    <input type="hidden" id="pp-tid">
+    <label>Paste table here</label>
+    <textarea id="pp-data" rows="10" style="resize:vertical;font-family:var(--mono);font-size:11px"
+              placeholder="KCP-109-A-MC-148-MELTS_Auto&#9;158&#10;KCP-109-A-MC-1-MELTS_Auto&#9;-"></textarea>
+    <div id="pp-preview" style="font-size:11px;color:var(--text-muted);margin-top:6px"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-paste-p')">Cancel</button>
+      <button class="btn btn-primary" onclick="applyPastedP()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Paste Record -->
+<div class="modal-bg" id="modal-view-record">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:560px">
+    <h2>📄 Paste Record</h2>
+    <p class="modal-sub">Original table as pasted. Values are stored per-cell alongside filenames.</p>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <span id="vr-meta" style="font-size:11px;color:var(--text-muted);flex:1"></span>
+      <button class="btn btn-sm" onclick="copyRecord()">📋 Copy</button>
+    </div>
+    <textarea id="vr-data" rows="12" readonly
+      style="resize:vertical;font-family:var(--mono);font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);width:100%;box-sizing:border-box;padding:8px"></textarea>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-view-record')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Sample -->
+<div class="modal-bg" id="modal-add-sample">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1">
+    <h2>✦ Add Sample</h2>
+    <p class="modal-sub">Register a new parent sample (whole-rock composition).</p>
+    <label>Sample Name / ID</label>
+    <input type="text" id="as-name" placeholder="e.g. KCP-109-X">
+    <label>Notes <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
+    <textarea id="as-notes" rows="2" style="resize:vertical" placeholder="Any additional notes…"></textarea>
+    <label>Rock Type <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
+    <input type="text" id="as-rocktype" placeholder="e.g. Rhyolite, Dacite, Basalt…">
+    <label>Geological Unit <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
+    <select id="as-unit-id" style="margin-bottom:4px">
+      <option value="">— None / Unassigned —</option>
+    </select>
+    <div id="as-unit-preview" style="font-size:10px;color:var(--text-muted);min-height:14px"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-add-sample')">Cancel</button>
+      <button class="btn btn-primary" onclick="createSampleOnly()">Create Sample</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Add / Edit Unit -->
+<div class="modal-bg" id="modal-unit">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:420px">
+    <h2 id="unit-modal-title">＋ Add Geological Unit</h2>
+    <input type="hidden" id="unit-edit-idx" value="-1">
+    <label>Unit Name <span style="color:var(--red);font-weight:700">*</span></label>
+    <input type="text" id="unit-name" placeholder="e.g. Bishop Tuff">
+    <label>Abbreviation <span style="color:var(--red);font-weight:700">*</span></label>
+    <input type="text" id="unit-abbr" placeholder="e.g. BT" style="width:120px">
+    <label style="margin-top:10px;display:block">Display Color</label>
+    <div id="unit-color-picker" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;margin-bottom:4px"></div>
+    <input type="hidden" id="unit-color" value="#58a6ff">
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-unit')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUnitModal()">Save Unit</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Simulation Set -->
+<div class="modal-bg" id="modal-new-simset">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:480px">
+    <h2>🔬 Add Run</h2>
+    <p class="modal-sub">Every simulation set is associated with a parent sample. Add samples first in the <strong>🧪 Samples</strong> tab.</p>
+    <div id="simset-no-samples-warn" style="display:none;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);border-radius:6px;padding:10px;margin-bottom:12px;font-size:12px;color:#f85149">
+      ⚠ No samples found. Please add a sample in the <strong>🧪 Samples</strong> tab first, then return here.
+    </div>
+    <label>Parent Sample <span style="color:var(--red);font-weight:700">*</span></label>
+    <select id="simset-sample-sel" style="margin-bottom:12px"></select>
+    <label>Run Type <span style="color:var(--red);font-weight:700">*</span></label>
+    <select id="simset-run-type" onchange="syncRunType(this.value)" style="margin-bottom:12px">
+      <option value="monte_carlo">Monte Carlo</option>
+    </select>
+    <div id="simset-mc-options">
+      <label>Number of Simulations <span style="color:var(--red);font-weight:700">*</span></label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;margin-bottom:12px">
+        <select id="simset-total-sel" onchange="syncSimTotal(this.value)">
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200" selected>200</option>
+          <option value="500">500</option>
+          <option value="custom">Custom…</option>
+        </select>
+        <input type="number" id="simset-total-custom" placeholder="Enter number" min="1" max="9999" style="display:none;width:140px">
+      </div>
+    </div>
+    <label>Run Name</label>
+    <input type="text" id="simset-name" placeholder="Auto-filled — edit if needed">
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-new-simset')">Cancel</button>
+      <button class="btn btn-primary" id="simset-create-btn" onclick="createSimset()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Sample -->
+<div class="modal-bg" id="modal-edit-sample">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:480px">
+    <h2 id="es-modal-title">✏ Edit</h2>
+    <input type="hidden" id="es-id">
+    <input type="hidden" id="es-type"> <!-- "sample" | "simset" -->
+    <label>Name</label>
+    <input type="text" id="es-name">
+    <label>Notes</label>
+    <textarea id="es-notes" rows="3" style="resize:vertical"></textarea>
+    <!-- Sample-only fields -->
+    <div id="es-sample-fields">
+      <label>Rock Type <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
+      <input type="text" id="es-rocktype" placeholder="e.g. Rhyolite, Dacite, Basalt…">
+      <label>Geological Unit <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
+      <select id="es-unit-id" style="margin-bottom:4px">
+        <option value="">— None / Unassigned —</option>
+      </select>
+      <div id="es-unit-preview" style="font-size:10px;color:var(--text-muted);min-height:14px"></div>
+    </div>
+    <!-- Simset-only fields -->
+    <div id="es-simset-fields" style="display:none">
+      <label>Parent Sample</label>
+      <select id="es-parent-sample" style="margin-bottom:4px"></select>
+      <div id="es-parent-preview" style="font-size:11px;color:var(--text-muted);min-height:14px;margin-bottom:4px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-edit-sample')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditSample()">Save</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Re-link Orphaned Run Modal -->
+<div class="modal-bg" id="modal-relink">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:440px">
+    <h2>🔗 Re-link Run to Sample</h2>
+    <p class="modal-sub">This run has no parent sample (it was deleted). Choose a new parent sample to re-link it.</p>
+    <input type="hidden" id="rl-ssid">
+    <label>Run <span style="color:var(--text-muted);font-weight:400;text-transform:none">(read-only)</span></label>
+    <input type="text" id="rl-run-name" readonly style="opacity:.7;cursor:default">
+    <label>New Parent Sample <span style="color:var(--red);font-weight:700">*</span></label>
+    <select id="rl-sample-sel" style="margin-bottom:4px"></select>
+    <div id="rl-sample-preview" style="font-size:11px;color:var(--text-muted);min-height:16px;margin-bottom:8px"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-relink')">Cancel</button>
+      <button class="btn btn-primary" onclick="relinkOrphan()">🔗 Re-link</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Threshold -->
+<div class="modal-bg" id="modal-add-thresh">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1">
+    <h2>📊 Add Threshold</h2>
+    <p class="modal-sub">New threshold tracker for <strong id="at-sname"></strong>.<br>Each threshold gets its own full 200-cell composition grid.</p>
+    <input type="hidden" id="at-sid">
+    <label>Threshold Name</label>
+    <input type="text" id="at-name" placeholder="e.g. THRESHOLD-4">
+    <label>Cutoff Value</label>
+    <input type="text" id="at-cutoff" placeholder="e.g. 4.0">
+    <label>Pressure Unit <span style="color:var(--red);font-weight:700">*</span></label>
+    <select id="at-unit" style="margin-bottom:4px">
+      <option value="">— Select unit —</option>
+      <option value="MPa">MPa (megapascals)</option>
+      <option value="kbar">kbar (kilobars)</option>
+      <option value="GPa">GPa (gigapascals)</option>
+      <option value="bar">bar</option>
+      <option value="wt%">wt%</option>
+    </select>
+    <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px">Pasted P values will be interpreted in this unit. Must be chosen at creation time to avoid silent unit confusion.</div>
+    <label>Description <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
+    <textarea id="at-desc" rows="2" style="resize:vertical" placeholder="Brief notes…"></textarea>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-add-thresh')">Cancel</button>
+      <button class="btn btn-primary" onclick="createThreshold()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pressure Stats -->
+<div class="modal-bg" id="modal-pstats">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1">
+    <h2>📈 Pressure Statistics</h2>
+    <input type="hidden" id="ps-sid">
+    <input type="hidden" id="ps-tid">
+    <label>Mean Pressure</label>
+    <input type="number" id="ps-mean" step="any" placeholder="e.g. 5.2">
+    <label>Std Deviation (σ)</label>
+    <input type="number" id="ps-std" step="any" placeholder="e.g. 0.3">
+    <label>Unit</label>
+    <input type="text" id="ps-unit" placeholder="e.g. kbar">
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-pstats')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePStats()">Save</button>
+    </div>
+  </div>
+</div>
+
