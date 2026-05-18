@@ -1,0 +1,19 @@
+<!-- EDIT BATCH MODAL -->
+<div class="modal-bg" id="modal-edit-batch">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:440px">
+    <h2>✏ Edit Batch</h2>
+    <input type="hidden" id="edit-batch-id">
+    <label>Batch Name</label>
+    <input id="edit-batch-name" type="text" placeholder="Batch name..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:10px">
+    <label>Subtitle / Note</label>
+    <input id="edit-batch-note" type="text" placeholder="Short description..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:10px">
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      Batch Colour
+      <input id="edit-batch-color" type="color" value="#58a6ff" style="width:36px;height:28px;border:none;background:none;cursor:pointer;padding:0">
+    </label>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeModal('modal-edit-batch')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditBatch()">Save</button>
+    </div>
+  </div>
+</div>

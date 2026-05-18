@@ -1,0 +1,78 @@
+<!-- ─────────────── ONBOARDING OVERLAY (first-run wizard) ─────────────── -->
+<div id="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="ob-title">
+
+  <!-- Step 1 — Choose path -->
+  <div class="ob-card" id="ob-step-choose">
+    <div class="ob-title" id="ob-title">🌋 Welcome to rhyolite-MELTS Tracker</div>
+    <div class="ob-sub">
+      A petrology Monte-Carlo simulation companion. To get started, either continue an existing
+      project (from a previously exported JSON file) or set up a new one.
+      <br><br>
+      <span style="color:var(--text-muted)">All data is stored locally in this browser. Export to JSON regularly to back up.</span>
+    </div>
+
+    <div class="ob-paths">
+      <button class="ob-path-btn" type="button" onclick="document.getElementById('ob-existing-file').click()">
+        <span class="ob-path-icon">📂</span>
+        <span class="ob-path-title">Load existing project</span>
+        <span class="ob-path-sub">Pick a JSON file you previously exported with this tool. Your existing samples, runs, and settings will be restored.</span>
+      </button>
+      <button class="ob-path-btn" type="button" onclick="obShowNewProject()">
+        <span class="ob-path-icon">✨</span>
+        <span class="ob-path-title">Start a new project</span>
+        <span class="ob-path-sub">Set up project identity (title, owner, citation) and define the geological units in your study.</span>
+      </button>
+    </div>
+
+    <input type="file" id="ob-existing-file" accept=".json" style="display:none" onchange="obHandleExistingFile(event)">
+
+    <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--text-muted)">
+      v<span id="ob-version-label"></span> · You can skip this and configure later, but you'll want to set citation info before publishing.
+      <br><a href="#" onclick="event.preventDefault();obSkip()" style="color:var(--blue)">Skip for now</a>
+    </div>
+  </div>
+
+  <!-- Step 2 — New project form -->
+  <div class="ob-card ob-form" id="ob-step-new" style="display:none">
+    <div class="ob-title">✨ New Project</div>
+    <div class="ob-sub">Fill in what you know now — every field can be edited later in Settings.</div>
+
+    <div class="ob-section-title">Project identity</div>
+
+    <label for="ob-title-in">Project Title <span style="color:var(--red)">*</span></label>
+    <input id="ob-title-in" type="text" placeholder="e.g. Kīlauea Catchment Petrology Study" autocomplete="off">
+
+    <label for="ob-owner-in">Project Owner <span style="color:var(--red)">*</span></label>
+    <input id="ob-owner-in" type="text" placeholder="e.g. Marvi Lastname (M.Sc. candidate)" autocomplete="off">
+
+    <label for="ob-advisors-in">Advisors</label>
+    <input id="ob-advisors-in" type="text" placeholder="e.g. Prof. A. Jones, Dr. B. Lee" autocomplete="off">
+
+    <div class="ob-section-title">Publication / provenance <span style="font-weight:400;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0">(optional now — required before thesis submission)</span></div>
+
+    <label for="ob-citation-in">Citation text (free-form)</label>
+    <textarea id="ob-citation-in" rows="3" placeholder="e.g. Lastname, M. (2026). rhyolite-MELTS Tracker [Software]. https://doi.org/10.xxxx/zenodo.xxxxx"></textarea>
+
+    <label for="ob-license-in">License (SPDX identifier)</label>
+    <input id="ob-license-in" type="text" placeholder="e.g. MIT, CC-BY-4.0, GPL-3.0-or-later" autocomplete="off">
+
+    <label for="ob-repo-in">Source repository URL</label>
+    <input id="ob-repo-in" type="url" placeholder="https://github.com/your-handle/melts-tracker" autocomplete="off">
+
+    <label for="ob-doi-in">DOI</label>
+    <input id="ob-doi-in" type="text" placeholder="10.5281/zenodo.0000000" autocomplete="off">
+
+    <div class="ob-section-title">Geological units in this study</div>
+    <div class="ob-callout">
+      ⚠ <strong>Units must be created here first</strong>, then they can be assigned to samples.
+      Add every geological unit you expect to sample. You can rename, recolour, or add more later from Settings.
+    </div>
+    <div class="ob-units-list" id="ob-units-list"><!-- rows injected by JS --></div>
+    <button class="btn btn-sm" type="button" onclick="obAddUnitRow()">＋ Add another unit</button>
+
+    <div class="ob-actions">
+      <button class="btn" type="button" onclick="obBackToChoose()">← Back</button>
+      <button class="btn btn-primary" type="button" onclick="obSubmitNewProject()">Create Project →</button>
+    </div>
+  </div>
+</div>

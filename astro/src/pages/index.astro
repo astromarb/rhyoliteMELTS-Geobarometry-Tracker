@@ -1,9 +1,32 @@
 ---
-// Phase 1 parity shell. The original <body> markup is imported verbatim
-// as raw HTML and injected with set:html so behaviour matches index.html
-// 1:1 while we begin component extraction in later phases.
-import body from '../_body.html?raw';
 import '../styles/global.css';
+import OnboardingOverlay from '../components/OnboardingOverlay.astro';
+import PersistentBanner from '../components/PersistentBanner.astro';
+import Header from '../components/Header.astro';
+import EditAddPopup from '../components/EditAddPopup.astro';
+import Toast from '../components/Toast.astro';
+import UtilBar from '../components/UtilBar.astro';
+import Sidebar from '../components/Sidebar.astro';
+import RightRail from '../components/RightRail.astro';
+import SamplesPage from '../components/pages/SamplesPage.astro';
+import RunsPage from '../components/pages/RunsPage.astro';
+import OverviewPage from '../components/pages/OverviewPage.astro';
+import ThresholdsPage from '../components/pages/ThresholdsPage.astro';
+import PressureVizPage from '../components/pages/PressureVizPage.astro';
+import SettingsPage from '../components/pages/SettingsPage.astro';
+import AddBatchModal from '../components/modals/AddBatchModal.astro';
+import EditBatchModal from '../components/modals/EditBatchModal.astro';
+import ConfirmResetModal from '../components/modals/ConfirmResetModal.astro';
+import PasteSummaryModal from '../components/modals/PasteSummaryModal.astro';
+import PastePModal from '../components/modals/PastePModal.astro';
+import ViewRecordModal from '../components/modals/ViewRecordModal.astro';
+import AddSampleModal from '../components/modals/AddSampleModal.astro';
+import UnitModal from '../components/modals/UnitModal.astro';
+import NewSimsetModal from '../components/modals/NewSimsetModal.astro';
+import EditSampleModal from '../components/modals/EditSampleModal.astro';
+import RelinkModal from '../components/modals/RelinkModal.astro';
+import AddThreshModal from '../components/modals/AddThreshModal.astro';
+import PStatsModal from '../components/modals/PStatsModal.astro';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +38,41 @@ import '../styles/global.css';
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌋</text></svg>" />
 </head>
 <body>
-  <Fragment set:html={body} />
+  <OnboardingOverlay />
+  <PersistentBanner />
+  <Header />
+  <EditAddPopup />
+  <Toast />
+  <UtilBar />
+
+  <AddBatchModal />
+  <EditBatchModal />
+
+  <!-- APP BODY — sidebar + pages as siblings (V3 proven pattern) -->
+  <div class="app-body">
+    <Sidebar />
+    <SamplesPage />
+    <RunsPage />
+    <OverviewPage />
+    <ThresholdsPage />
+    <PressureVizPage />
+    <SettingsPage />
+    <RightRail />
+  </div>
+
+  <!-- ══ MODALS ══ -->
+  <ConfirmResetModal />
+  <PasteSummaryModal />
+  <PastePModal />
+  <ViewRecordModal />
+  <AddSampleModal />
+  <UnitModal />
+  <NewSimsetModal />
+  <EditSampleModal />
+  <RelinkModal />
+  <AddThreshModal />
+  <PStatsModal />
+
   <script is:inline src="/legacy.js"></script>
 </body>
 </html>

@@ -1,0 +1,18 @@
+<!-- Add / Edit Unit -->
+<div class="modal-bg" id="modal-unit">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:420px">
+    <h2 id="unit-modal-title">＋ Add Geological Unit</h2>
+    <input type="hidden" id="unit-edit-idx" value="-1">
+    <label>Unit Name <span style="color:var(--red);font-weight:700">*</span></label>
+    <input type="text" id="unit-name" placeholder="e.g. Bishop Tuff">
+    <label>Abbreviation <span style="color:var(--red);font-weight:700">*</span></label>
+    <input type="text" id="unit-abbr" placeholder="e.g. BT" style="width:120px">
+    <label style="margin-top:10px;display:block">Display Color</label>
+    <div id="unit-color-picker" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;margin-bottom:4px"></div>
+    <input type="hidden" id="unit-color" value="#58a6ff">
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-unit')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUnitModal()">Save Unit</button>
+    </div>
+  </div>
+</div>

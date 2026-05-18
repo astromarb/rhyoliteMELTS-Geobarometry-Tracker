@@ -1,0 +1,18 @@
+<!-- Pressure Stats -->
+<div class="modal-bg" id="modal-pstats">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1">
+    <h2>📈 Pressure Statistics</h2>
+    <input type="hidden" id="ps-sid">
+    <input type="hidden" id="ps-tid">
+    <label>Mean Pressure</label>
+    <input type="number" id="ps-mean" step="any" placeholder="e.g. 5.2">
+    <label>Std Deviation (σ)</label>
+    <input type="number" id="ps-std" step="any" placeholder="e.g. 0.3">
+    <label>Unit</label>
+    <input type="text" id="ps-unit" placeholder="e.g. kbar">
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-pstats')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePStats()">Save</button>
+    </div>
+  </div>
+</div>

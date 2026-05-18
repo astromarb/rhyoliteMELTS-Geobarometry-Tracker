@@ -1,0 +1,16 @@
+<!-- View Paste Record -->
+<div class="modal-bg" id="modal-view-record">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:560px">
+    <h2>📄 Paste Record</h2>
+    <p class="modal-sub">Original table as pasted. Values are stored per-cell alongside filenames.</p>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <span id="vr-meta" style="font-size:11px;color:var(--text-muted);flex:1"></span>
+      <button class="btn btn-sm" onclick="copyRecord()">📋 Copy</button>
+    </div>
+    <textarea id="vr-data" rows="12" readonly
+      style="resize:vertical;font-family:var(--mono);font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);width:100%;box-sizing:border-box;padding:8px"></textarea>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-view-record')">Close</button>
+    </div>
+  </div>
+</div>
