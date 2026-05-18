@@ -1,11 +1,17 @@
 <!-- Paste-P Import Summary (lists skipped / unmatched / locked rows) -->
 <div class="modal-bg" id="modal-paste-summary">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:680px">
+  <div class="modal pps-modal" role="dialog" aria-modal="true" tabindex="-1">
     <h2>📋 Paste Import Summary</h2>
-    <p class="modal-sub" id="pps-counts" style="margin-bottom:8px"></p>
-    <div id="pps-details" style="font-family:var(--mono);font-size:11px;max-height:340px;overflow:auto;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:8px;white-space:pre-wrap;word-break:break-all"></div>
+    <p class="modal-sub pps-counts" id="pps-counts"></p>
+    <div id="pps-details" class="pps-details"></div>
     <div class="modal-footer">
       <button class="btn btn-primary" onclick="closeModal('modal-paste-summary')">Close</button>
     </div>
   </div>
 </div>
+
+<style>
+  .pps-modal{max-width:680px}
+  .pps-counts{margin-bottom:8px}
+  .pps-details{font-family:var(--mono);font-size:11px;max-height:340px;overflow:auto;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:8px;white-space:pre-wrap;word-break:break-all}
+</style>

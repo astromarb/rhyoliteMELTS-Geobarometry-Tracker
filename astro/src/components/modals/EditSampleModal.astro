@@ -1,28 +1,28 @@
 <!-- Edit Sample -->
 <div class="modal-bg" id="modal-edit-sample">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:480px">
+  <div class="modal es-modal" role="dialog" aria-modal="true" tabindex="-1">
     <h2 id="es-modal-title">✏ Edit</h2>
     <input type="hidden" id="es-id">
     <input type="hidden" id="es-type"> <!-- "sample" | "simset" -->
     <label>Name</label>
     <input type="text" id="es-name">
     <label>Notes</label>
-    <textarea id="es-notes" rows="3" style="resize:vertical"></textarea>
+    <textarea id="es-notes" rows="3" class="resize-v"></textarea>
     <!-- Sample-only fields -->
     <div id="es-sample-fields">
-      <label>Rock Type <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
+      <label>Rock Type <span class="opt-label">(optional)</span></label>
       <input type="text" id="es-rocktype" placeholder="e.g. Rhyolite, Dacite, Basalt…">
-      <label>Geological Unit <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
-      <select id="es-unit-id" style="margin-bottom:4px">
+      <label>Geological Unit <span class="opt-label">(optional)</span></label>
+      <select id="es-unit-id" class="es-mb-4">
         <option value="">— None / Unassigned —</option>
       </select>
-      <div id="es-unit-preview" style="font-size:10px;color:var(--text-muted);min-height:14px"></div>
+      <div id="es-unit-preview" class="hint-sm"></div>
     </div>
     <!-- Simset-only fields -->
-    <div id="es-simset-fields" style="display:none">
+    <div id="es-simset-fields" class="is-hidden">
       <label>Parent Sample</label>
-      <select id="es-parent-sample" style="margin-bottom:4px"></select>
-      <div id="es-parent-preview" style="font-size:11px;color:var(--text-muted);min-height:14px;margin-bottom:4px"></div>
+      <select id="es-parent-sample" class="es-mb-4"></select>
+      <div id="es-parent-preview" class="es-parent-preview"></div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-edit-sample')">Cancel</button>
@@ -30,3 +30,9 @@
     </div>
   </div>
 </div>
+
+<style>
+  .es-modal{max-width:480px}
+  .es-mb-4{margin-bottom:4px}
+  .es-parent-preview{font-size:11px;color:var(--text-muted);min-height:14px;margin-bottom:4px}
+</style>

@@ -8,7 +8,7 @@
       A petrology Monte-Carlo simulation companion. To get started, either continue an existing
       project (from a previously exported JSON file) or set up a new one.
       <br><br>
-      <span style="color:var(--text-muted)">All data is stored locally in this browser. Export to JSON regularly to back up.</span>
+      <span class="ob-note">All data is stored locally in this browser. Export to JSON regularly to back up.</span>
     </div>
 
     <div class="ob-paths">
@@ -24,31 +24,31 @@
       </button>
     </div>
 
-    <input type="file" id="ob-existing-file" accept=".json" style="display:none" onchange="obHandleExistingFile(event)">
+    <input type="file" id="ob-existing-file" accept=".json" class="is-hidden" onchange="obHandleExistingFile(event)">
 
-    <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--text-muted)">
+    <div class="ob-footer-note">
       v<span id="ob-version-label"></span> · You can skip this and configure later, but you'll want to set citation info before publishing.
-      <br><a href="#" onclick="event.preventDefault();obSkip()" style="color:var(--blue)">Skip for now</a>
+      <br><a href="#" onclick="event.preventDefault();obSkip()" class="ob-skip-link">Skip for now</a>
     </div>
   </div>
 
   <!-- Step 2 — New project form -->
-  <div class="ob-card ob-form" id="ob-step-new" style="display:none">
+  <div class="ob-card ob-form is-hidden" id="ob-step-new">
     <div class="ob-title">✨ New Project</div>
     <div class="ob-sub">Fill in what you know now — every field can be edited later in Settings.</div>
 
     <div class="ob-section-title">Project identity</div>
 
-    <label for="ob-title-in">Project Title <span style="color:var(--red)">*</span></label>
+    <label for="ob-title-in">Project Title <span class="ob-req">*</span></label>
     <input id="ob-title-in" type="text" placeholder="e.g. Kīlauea Catchment Petrology Study" autocomplete="off">
 
-    <label for="ob-owner-in">Project Owner <span style="color:var(--red)">*</span></label>
+    <label for="ob-owner-in">Project Owner <span class="ob-req">*</span></label>
     <input id="ob-owner-in" type="text" placeholder="e.g. Marvi Lastname (M.Sc. candidate)" autocomplete="off">
 
     <label for="ob-advisors-in">Advisors</label>
     <input id="ob-advisors-in" type="text" placeholder="e.g. Prof. A. Jones, Dr. B. Lee" autocomplete="off">
 
-    <div class="ob-section-title">Publication / provenance <span style="font-weight:400;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0">(optional now — required before thesis submission)</span></div>
+    <div class="ob-section-title">Publication / provenance <span class="ob-section-note">(optional now — required before thesis submission)</span></div>
 
     <label for="ob-citation-in">Citation text (free-form)</label>
     <textarea id="ob-citation-in" rows="3" placeholder="e.g. Lastname, M. (2026). rhyolite-MELTS Tracker [Software]. https://doi.org/10.xxxx/zenodo.xxxxx"></textarea>
@@ -76,3 +76,11 @@
     </div>
   </div>
 </div>
+
+<style>
+  .ob-note{color:var(--text-muted)}
+  .ob-footer-note{text-align:center;margin-top:12px;font-size:11px;color:var(--text-muted)}
+  .ob-skip-link{color:var(--blue)}
+  .ob-req{color:var(--red)}
+  .ob-section-note{font-weight:400;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0}
+</style>

@@ -1,14 +1,14 @@
 <!-- Add / Edit Unit -->
 <div class="modal-bg" id="modal-unit">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:420px">
+  <div class="modal unit-modal" role="dialog" aria-modal="true" tabindex="-1">
     <h2 id="unit-modal-title">＋ Add Geological Unit</h2>
     <input type="hidden" id="unit-edit-idx" value="-1">
-    <label>Unit Name <span style="color:var(--red);font-weight:700">*</span></label>
+    <label>Unit Name <span class="req-star">*</span></label>
     <input type="text" id="unit-name" placeholder="e.g. Bishop Tuff">
-    <label>Abbreviation <span style="color:var(--red);font-weight:700">*</span></label>
-    <input type="text" id="unit-abbr" placeholder="e.g. BT" style="width:120px">
-    <label style="margin-top:10px;display:block">Display Color</label>
-    <div id="unit-color-picker" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;margin-bottom:4px"></div>
+    <label>Abbreviation <span class="req-star">*</span></label>
+    <input type="text" id="unit-abbr" placeholder="e.g. BT" class="unit-abbr-input">
+    <label class="unit-color-label">Display Color</label>
+    <div id="unit-color-picker" class="unit-color-picker"></div>
     <input type="hidden" id="unit-color" value="#58a6ff">
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-unit')">Cancel</button>
@@ -16,3 +16,10 @@
     </div>
   </div>
 </div>
+
+<style>
+  .unit-modal{max-width:420px}
+  .unit-abbr-input{width:120px}
+  .unit-color-label{margin-top:10px;display:block}
+  .unit-color-picker{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;margin-bottom:4px}
+</style>

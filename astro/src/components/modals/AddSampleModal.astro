@@ -5,18 +5,22 @@
     <p class="modal-sub">Register a new parent sample (whole-rock composition).</p>
     <label>Sample Name / ID</label>
     <input type="text" id="as-name" placeholder="e.g. KCP-109-X">
-    <label>Notes <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
-    <textarea id="as-notes" rows="2" style="resize:vertical" placeholder="Any additional notes…"></textarea>
-    <label>Rock Type <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
+    <label>Notes <span class="opt-label">(optional)</span></label>
+    <textarea id="as-notes" rows="2" class="resize-v" placeholder="Any additional notes…"></textarea>
+    <label>Rock Type <span class="opt-label">(optional)</span></label>
     <input type="text" id="as-rocktype" placeholder="e.g. Rhyolite, Dacite, Basalt…">
-    <label>Geological Unit <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
-    <select id="as-unit-id" style="margin-bottom:4px">
+    <label>Geological Unit <span class="opt-label">(optional)</span></label>
+    <select id="as-unit-id" class="as-unit-sel">
       <option value="">— None / Unassigned —</option>
     </select>
-    <div id="as-unit-preview" style="font-size:10px;color:var(--text-muted);min-height:14px"></div>
+    <div id="as-unit-preview" class="hint-sm"></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-add-sample')">Cancel</button>
       <button class="btn btn-primary" onclick="createSampleOnly()">Create Sample</button>
     </div>
   </div>
 </div>
+
+<style>
+  .as-unit-sel{margin-bottom:4px}
+</style>
