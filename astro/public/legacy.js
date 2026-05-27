@@ -64,8 +64,23 @@ let S={samples:[],simsets:[],activeSimsetId:null,activeSampleId:null,activeThres
 let activeTab={};      // simsetId -> 'grid'|'failed'
 let activeThreshTab={};// tid -> 'grid'|'locked'
 
-function getSample(id){return S.samples.find(s=>s.id===id);}
-function getSimset(id){return S.simsets.find(ss=>ss.id===id);}
+// Phase 5: id-keyed Map caches. Rebuild on array-ref or length change.
+let _smpCache=null,_smpRef=null,_smpLen=-1;
+let _ssCache=null,_ssRef=null,_ssLen=-1;
+function getSample(id){
+  if(_smpCache===null||_smpRef!==S.samples||_smpLen!==S.samples.length){
+    _smpCache=new Map();for(const s of S.samples)_smpCache.set(s.id,s);
+    _smpRef=S.samples;_smpLen=S.samples.length;
+  }
+  return _smpCache.get(id);
+}
+function getSimset(id){
+  if(_ssCache===null||_ssRef!==S.simsets||_ssLen!==S.simsets.length){
+    _ssCache=new Map();for(const ss of S.simsets)_ssCache.set(ss.id,ss);
+    _ssRef=S.simsets;_ssLen=S.simsets.length;
+  }
+  return _ssCache.get(id);
+}
 // Legacy aliases used in thresholding code (maps to simsets for backward compat)
 function getS(id){return getSimset(id);}
 function getT(sid,tid){const s=getSimset(sid);return s&&s.thresholds.find(t=>t.id===tid);}
@@ -150,8 +165,22 @@ function dismissPersistentBanner(){
   if(el)el.classList.remove('show');
 }
 
+// Phase 5: debounced save. Public save() returns true and schedules a
+// trailing write 250 ms after the last call; flushSave() forces immediate
+// persistence (used by load() cleanup and before unload).
+let _saveTimer=null;
 function save(){
+  if(_saveTimer!==null) return true;
+  _saveTimer=setTimeout(()=>{ _saveTimer=null; _saveImmediate(); },250);
+  return true;
+}
+function flushSave(){
+  if(_saveTimer!==null){ clearTimeout(_saveTimer); _saveTimer=null; }
+  return _saveImmediate();
+}
+function _saveImmediate(){
   try{
+    S._schemaVersion=SCHEMA_VERSION;  // stamp for fast-path on next load
     localStorage.setItem(STORAGE_KEY,JSON.stringify(S));
     if(_saveBlocked){_saveBlocked=false;dismissPersistentBanner();}
     return true;
@@ -304,6 +333,10 @@ function migrateSample(s){
 function migrate(raw){
   if(!raw||typeof raw!=='object') return null;
   const src = raw.state||raw;
+  // Phase 5 fast path: trust the schema-version stamp from last save().
+  if(src._schemaVersion===SCHEMA_VERSION && src._migrated && Array.isArray(src.simsets) && Array.isArray(src.samples)){
+    return src;
+  }
   // Already migrated to new format?
   if(raw._migrated && Array.isArray(src.simsets)){
     return{
@@ -354,7 +387,7 @@ function load(){
         if(!Array.isArray(S.sampleCategories))S.sampleCategories=[];
         if(key!==STORAGE_KEY){
           // Only delete the legacy key AFTER confirming the new key was written successfully.
-          const ok=save();
+          const ok=flushSave();
           if(ok){
             try{
               const verify=localStorage.getItem(STORAGE_KEY);
@@ -4947,9 +4980,13 @@ if(document.readyState === 'loading'){
   document.addEventListener('DOMContentLoaded', _initDelegated, {once:true});
 } else { _initDelegated(); }
 
+// Phase 5: ensure any pending debounced save is flushed before the page goes away.
+window.addEventListener('beforeunload', flushSave);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushSave(); });
+
 // ════════════════════════════════════════════════════════
 //  Phase 4a: expose module-scoped declarations on window so
 //  legacy onclick='fn()' attributes continue to resolve.
 // ════════════════════════════════════════════════════════
-Object.assign(window, {_hTitleBlur,_hTitleKeydown,_hRunTypeChange,_hSimTotalChange,_hResetInput,_hImportFileClick,_hObFileClick,_hObSkip,APP_VERSION,BACKUP_PREFIX,BACKUP_RING,BATCH_COLORS,CB_PALETTE,CB_SHAPES,DEFAULT_SIM_TOTAL,HK_PALETTE,HK_SHAPES,OB_DEFAULT_COLORS,OXIDES,OXIDE_ALIASES,OXIDE_COLORS_CB,OXIDE_COLORS_DEFAULT,OXIDE_ORDER,OX_LABEL,PDF_GRIDS_PER_PAGE,RANK_PLOT_EXPORT_DPR,RANK_PLOT_PAD_FRAC,S,SAMPLE_NAMES,SCHEMA_VERSION,ST,STEPS,STORAGE_KEY,UNIT_COLORS,UNIT_COLORS_CB,_baseBtnHTML,_batchColor,_batchDragLeave,_batchDragOver,_batchDragSsId,_batchDragStart,_batchDrop,_buildColorPicker,_buildHKLegend,_buildOxideLegend,_catEditMode,_catSave,_cellKey,_checkExportNag,_doResetData,_draftBtnHTML,_drawPVisRun,_getUnit,_hkClickRun,_hkClickSample,_hkDebounce,_initCats,_injectOxideLegend,_isOxGridOn,_lastFocusBeforeModal,_makeSVGMarker,_needsOnboarding,_obUnitRowCounter,_parseRunWR,_populateUnitSelect,_positionEditPopup,_propagateParentRecovery,_renderRunHarkersFromData,_renderSettingsUnits,_saveBlocked,_showAddCatForm,_smpDragEnd,_smpDragId,_smpDragLeave,_smpDragOver,_smpDragStart,_smpDrop,_ssDragEnd,_ssDragId,_ssDragLeave,_ssDragOver,_ssDragStart,_ssDrop,_submitNewCat,_syncColorby,_syncOxGlobalBtn,_threshDragEnd,_threshDragLeave,_threshDragOver,_threshDragStart,_threshDragging,_threshDrop,_tt,_unitDragEnd,_unitDragIdx,_unitDragLeave,_unitDragOver,_unitDragStart,_unitDrop,_updateSubtitle,_validBatches,_validSampleCategories,_validSettings,_validUnits,activeTab,activeThreshTab,addSampleCategory,addSims,applyCB,applyEM,applyPastedP,applyTheme,assignRunToBatch,autoNameSimset,bootPage,buildCompTable,buildCounterRows,buildFailedList,buildGrid,buildLockedList,buildOxideGrid,buildRankPlot,buildThreshCard,buildThreshMain,closeEditPopup,closeInspector,closeModal,commitRunWR,copyRecord,createSampleOnly,createSimset,createThreshold,cycleCell,deleteBatch,deleteSample,deleteSampleCategory,deleteSimset,deleteThreshold,deleteUnit,discardRunWRDraft,dismissPersistentBanner,drawCBShape,drawHarker,drawRankPlot,drawRunHarker,esc,exportBatchPDF,exportData,exportGridPng,exportHarkerPNG,exportPVisRun,exportRankPlotPNG,exportRunHarkerPNG,getBatch,getBatches,getCBUnitColor,getComps,getFail,getHKStyle,getPct,getRunCount,getS,getSample,getSimset,getSucc,getT,getWRNorm,hideOnboarding,hkColor,importData,isCBMode,load,loadAppTitle,migrate,migrateComp,migrateSample,migrateSampleEntity,migrateSimsetEntity,migrateThresh,migrateThreshEntity,mkComps,mkSample,mkSampleEntity,mkSimset,mkThreshold,normaliseWR,obAddUnitRow,obBackToChoose,obHandleExistingFile,obShowNewProject,obSkip,obSubmitNewProject,openAddBatch,openAddSample,openAddThresh,openAddUnitModal,openEditBatch,openEditPopup,openEditSample,openEditSimset,openEditUnitModal,openModal,openNewSimset,openPStats,openPasteP,openRelinkModal,openViewRecord,pasteWR,previewRunWR,recoverComp,relinkOrphan,removeRunWR,removeWR,renameSampleCategory,renderAll,renderHarkers,renderHarkersNow,renderOverview,renderPressureViz,renderRunHarkers,renderRuns,renderSamples,renderSettings,renderSidebar,renderThreshCardInPlace,renderThresholding,resetData,runUnitTests,sanitizeCompWR,sanitizeWR,save,saveAppTitle,saveBatch,saveDefaultThreshold,saveDefaultThresholdInline,saveEditBatch,saveEditSample,savePStats,saveSettings,saveUnitModal,selSamplePage,selThresh,selectSimset,setNote,setTab,setThreshTab,showOnboarding,showPage,showPersistentBanner,smartTick,snapshotBeforeImport,statusChip,syncRunType,syncSimTotal,toast,toastUndo,toggleCB,toggleEditMode,toggleOxGrid,toggleOxGridAll,toggleRunHarkerPanel,toggleSampleInCategory,toggleTheme,toggleThresh,undoSims,updateThreshBadge
+Object.assign(window, {flushSave,_saveImmediate,_hTitleBlur,_hTitleKeydown,_hRunTypeChange,_hSimTotalChange,_hResetInput,_hImportFileClick,_hObFileClick,_hObSkip,APP_VERSION,BACKUP_PREFIX,BACKUP_RING,BATCH_COLORS,CB_PALETTE,CB_SHAPES,DEFAULT_SIM_TOTAL,HK_PALETTE,HK_SHAPES,OB_DEFAULT_COLORS,OXIDES,OXIDE_ALIASES,OXIDE_COLORS_CB,OXIDE_COLORS_DEFAULT,OXIDE_ORDER,OX_LABEL,PDF_GRIDS_PER_PAGE,RANK_PLOT_EXPORT_DPR,RANK_PLOT_PAD_FRAC,S,SAMPLE_NAMES,SCHEMA_VERSION,ST,STEPS,STORAGE_KEY,UNIT_COLORS,UNIT_COLORS_CB,_baseBtnHTML,_batchColor,_batchDragLeave,_batchDragOver,_batchDragSsId,_batchDragStart,_batchDrop,_buildColorPicker,_buildHKLegend,_buildOxideLegend,_catEditMode,_catSave,_cellKey,_checkExportNag,_doResetData,_draftBtnHTML,_drawPVisRun,_getUnit,_hkClickRun,_hkClickSample,_hkDebounce,_initCats,_injectOxideLegend,_isOxGridOn,_lastFocusBeforeModal,_makeSVGMarker,_needsOnboarding,_obUnitRowCounter,_parseRunWR,_populateUnitSelect,_positionEditPopup,_propagateParentRecovery,_renderRunHarkersFromData,_renderSettingsUnits,_saveBlocked,_showAddCatForm,_smpDragEnd,_smpDragId,_smpDragLeave,_smpDragOver,_smpDragStart,_smpDrop,_ssDragEnd,_ssDragId,_ssDragLeave,_ssDragOver,_ssDragStart,_ssDrop,_submitNewCat,_syncColorby,_syncOxGlobalBtn,_threshDragEnd,_threshDragLeave,_threshDragOver,_threshDragStart,_threshDragging,_threshDrop,_tt,_unitDragEnd,_unitDragIdx,_unitDragLeave,_unitDragOver,_unitDragStart,_unitDrop,_updateSubtitle,_validBatches,_validSampleCategories,_validSettings,_validUnits,activeTab,activeThreshTab,addSampleCategory,addSims,applyCB,applyEM,applyPastedP,applyTheme,assignRunToBatch,autoNameSimset,bootPage,buildCompTable,buildCounterRows,buildFailedList,buildGrid,buildLockedList,buildOxideGrid,buildRankPlot,buildThreshCard,buildThreshMain,closeEditPopup,closeInspector,closeModal,commitRunWR,copyRecord,createSampleOnly,createSimset,createThreshold,cycleCell,deleteBatch,deleteSample,deleteSampleCategory,deleteSimset,deleteThreshold,deleteUnit,discardRunWRDraft,dismissPersistentBanner,drawCBShape,drawHarker,drawRankPlot,drawRunHarker,esc,exportBatchPDF,exportData,exportGridPng,exportHarkerPNG,exportPVisRun,exportRankPlotPNG,exportRunHarkerPNG,getBatch,getBatches,getCBUnitColor,getComps,getFail,getHKStyle,getPct,getRunCount,getS,getSample,getSimset,getSucc,getT,getWRNorm,hideOnboarding,hkColor,importData,isCBMode,load,loadAppTitle,migrate,migrateComp,migrateSample,migrateSampleEntity,migrateSimsetEntity,migrateThresh,migrateThreshEntity,mkComps,mkSample,mkSampleEntity,mkSimset,mkThreshold,normaliseWR,obAddUnitRow,obBackToChoose,obHandleExistingFile,obShowNewProject,obSkip,obSubmitNewProject,openAddBatch,openAddSample,openAddThresh,openAddUnitModal,openEditBatch,openEditPopup,openEditSample,openEditSimset,openEditUnitModal,openModal,openNewSimset,openPStats,openPasteP,openRelinkModal,openViewRecord,pasteWR,previewRunWR,recoverComp,relinkOrphan,removeRunWR,removeWR,renameSampleCategory,renderAll,renderHarkers,renderHarkersNow,renderOverview,renderPressureViz,renderRunHarkers,renderRuns,renderSamples,renderSettings,renderSidebar,renderThreshCardInPlace,renderThresholding,resetData,runUnitTests,sanitizeCompWR,sanitizeWR,save,saveAppTitle,saveBatch,saveDefaultThreshold,saveDefaultThresholdInline,saveEditBatch,saveEditSample,savePStats,saveSettings,saveUnitModal,selSamplePage,selThresh,selectSimset,setNote,setTab,setThreshTab,showOnboarding,showPage,showPersistentBanner,smartTick,snapshotBeforeImport,statusChip,syncRunType,syncSimTotal,toast,toastUndo,toggleCB,toggleEditMode,toggleOxGrid,toggleOxGridAll,toggleRunHarkerPanel,toggleSampleInCategory,toggleTheme,toggleThresh,undoSims,updateThreshBadge
 });
