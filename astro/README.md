@@ -17,7 +17,7 @@ styles safely.
         ├── pages/index.astro  head + Fragment set:html={body} + <script src>
         └── styles/global.css  original <style> contents (verbatim)
 
-`index.html` and `melts_tracker_v15.html` at the repo root are unchanged —
+`index.html` at the repo root is unchanged —
 the Astro build is opt-in via `npm install && npm run build` inside this
 folder. Output lands in `astro/dist/` as plain files (file:// still works).
 
