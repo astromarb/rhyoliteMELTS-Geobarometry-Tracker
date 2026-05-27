@@ -7,9 +7,15 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "astro": "^4.16.0"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0",
+    "jsdom": "^25.0.0"
   }
 }
