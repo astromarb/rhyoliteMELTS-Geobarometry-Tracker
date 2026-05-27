@@ -12,23 +12,23 @@
     </div>
 
     <div class="ob-paths">
-      <button class="ob-path-btn" type="button" onclick="document.getElementById('ob-existing-file').click()">
+      <button class="ob-path-btn" type="button" data-action="_hObFileClick">
         <span class="ob-path-icon">📂</span>
         <span class="ob-path-title">Load existing project</span>
         <span class="ob-path-sub">Pick a JSON file you previously exported with this tool. Your existing samples, runs, and settings will be restored.</span>
       </button>
-      <button class="ob-path-btn" type="button" onclick="obShowNewProject()">
+      <button class="ob-path-btn" type="button" data-action="obShowNewProject">
         <span class="ob-path-icon">✨</span>
         <span class="ob-path-title">Start a new project</span>
         <span class="ob-path-sub">Set up project identity (title, owner, citation) and define the geological units in your study.</span>
       </button>
     </div>
 
-    <input type="file" id="ob-existing-file" accept=".json" class="is-hidden" onchange="obHandleExistingFile(event)">
+    <input type="file" id="ob-existing-file" accept=".json" class="is-hidden" data-action-change="obHandleExistingFile">
 
     <div class="ob-footer-note">
       v<span id="ob-version-label"></span> · You can skip this and configure later, but you'll want to set citation info before publishing.
-      <br><a href="#" onclick="event.preventDefault();obSkip()" class="ob-skip-link">Skip for now</a>
+      <br><a href="#" data-action="_hObSkip" class="ob-skip-link">Skip for now</a>
     </div>
   </div>
 
@@ -68,11 +68,11 @@
       Add every geological unit you expect to sample. You can rename, recolour, or add more later from Settings.
     </div>
     <div class="ob-units-list" id="ob-units-list"><!-- rows injected by JS --></div>
-    <button class="btn btn-sm" type="button" onclick="obAddUnitRow()">＋ Add another unit</button>
+    <button class="btn btn-sm" type="button" data-action="obAddUnitRow">＋ Add another unit</button>
 
     <div class="ob-actions">
-      <button class="btn" type="button" onclick="obBackToChoose()">← Back</button>
-      <button class="btn btn-primary" type="button" onclick="obSubmitNewProject()">Create Project →</button>
+      <button class="btn" type="button" data-action="obBackToChoose">← Back</button>
+      <button class="btn btn-primary" type="button" data-action="obSubmitNewProject">Create Project →</button>
     </div>
   </div>
 </div>

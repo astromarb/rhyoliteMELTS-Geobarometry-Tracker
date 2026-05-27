@@ -5,11 +5,11 @@
     <p class="modal-sub">This will <strong>permanently erase</strong> every sample, run, threshold, batch, and setting in this browser. Your most recent state will be kept as a backup snapshot (last 3 are retained) — but only for this browser. Export first if you might need this data again.</p>
     <p class="reset-instr">To confirm, type <strong class="reset-token">RESET</strong> below.</p>
     <input id="reset-confirm-input" type="text" placeholder="Type RESET" autocomplete="off"
-      oninput="document.getElementById('reset-confirm-btn').disabled=this.value.trim()!=='RESET'"
+      data-action-input="_hResetInput"
       class="reset-input">
     <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-confirm-reset')">Cancel</button>
-      <button class="btn btn-danger" id="reset-confirm-btn" disabled onclick="_doResetData()">Permanently Reset</button>
+      <button class="btn" data-action="closeModal" data-a1="modal-confirm-reset">Cancel</button>
+      <button class="btn btn-danger" id="reset-confirm-btn" disabled data-action="_doResetData">Permanently Reset</button>
     </div>
   </div>
 </div>

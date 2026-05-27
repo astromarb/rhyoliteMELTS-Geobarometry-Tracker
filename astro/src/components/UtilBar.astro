@@ -1,11 +1,11 @@
 <!-- ── Bottom-LEFT utility bar (v0.20) — edit + import/export ── -->
 <div id="util-bar">
   <div class="em-wrap" id="em-wrap">
-    <button class="btn btn-sm em-toggle-btn" id="em-toggle" onclick="toggleEditMode()" title="Toggle edit mode" aria-label="Toggle edit mode" aria-pressed="false">＋</button>
+    <button class="btn btn-sm em-toggle-btn" id="em-toggle" data-action="toggleEditMode" title="Toggle edit mode" aria-label="Toggle edit mode" aria-pressed="false">＋</button>
   </div>
   <div class="util-divider"></div>
-  <button class="btn btn-sm util-btn" onclick="exportData()" title="Export data as JSON" aria-label="Export data">⬇ Export</button>
-  <button class="btn btn-sm util-btn" onclick="document.getElementById('import-file').click()" title="Import JSON data file" aria-label="Import data">⬆ Import</button>
+  <button class="btn btn-sm util-btn" data-action="exportData" title="Export data as JSON" aria-label="Export data">⬇ Export</button>
+  <button class="btn btn-sm util-btn" data-action="_hImportFileClick" title="Import JSON data file" aria-label="Import data">⬆ Import</button>
 </div>
 
 <style>

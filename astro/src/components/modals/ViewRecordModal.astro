@@ -5,11 +5,11 @@
     <p class="modal-sub">Original table as pasted. Values are stored per-cell alongside filenames.</p>
     <div class="vr-toolbar">
       <span id="vr-meta" class="vr-meta"></span>
-      <button class="btn btn-sm" onclick="copyRecord()">📋 Copy</button>
+      <button class="btn btn-sm" data-action="copyRecord">📋 Copy</button>
     </div>
     <textarea id="vr-data" rows="12" readonly class="resize-v vr-data"></textarea>
     <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-view-record')">Close</button>
+      <button class="btn" data-action="closeModal" data-a1="modal-view-record">Close</button>
     </div>
   </div>
 </div>

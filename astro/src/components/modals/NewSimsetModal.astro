@@ -9,13 +9,13 @@
     <label>Parent Sample <span class="req-star">*</span></label>
     <select id="simset-sample-sel" class="ns-mb-12"></select>
     <label>Run Type <span class="req-star">*</span></label>
-    <select id="simset-run-type" onchange="syncRunType(this.value)" class="ns-mb-12">
+    <select id="simset-run-type" data-action-change="_hRunTypeChange" class="ns-mb-12">
       <option value="monte_carlo">Monte Carlo</option>
     </select>
     <div id="simset-mc-options">
       <label>Number of Simulations <span class="req-star">*</span></label>
       <div class="ns-mc-row">
-        <select id="simset-total-sel" onchange="syncSimTotal(this.value)">
+        <select id="simset-total-sel" data-action-change="_hSimTotalChange">
           <option value="50">50</option>
           <option value="100">100</option>
           <option value="200" selected>200</option>
@@ -28,8 +28,8 @@
     <label>Run Name</label>
     <input type="text" id="simset-name" placeholder="Auto-filled — edit if needed">
     <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-new-simset')">Cancel</button>
-      <button class="btn btn-primary" id="simset-create-btn" onclick="createSimset()">Create</button>
+      <button class="btn" data-action="closeModal" data-a1="modal-new-simset">Cancel</button>
+      <button class="btn btn-primary" id="simset-create-btn" data-action="createSimset">Create</button>
     </div>
   </div>
 </div>
