@@ -33,7 +33,7 @@ import PStatsModal from '../components/modals/PStatsModal.astro';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self' blob:; child-src 'self' blob:" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'self' blob:; child-src 'self' blob:" />
   <title>rhyolite-MELTS Tracker v0.20</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌋</text></svg>" />
 </head>
@@ -74,5 +74,6 @@ import PStatsModal from '../components/modals/PStatsModal.astro';
   <PStatsModal />
 
   <script is:inline src="/legacy.js"></script>
+  <script is:inline src="/cloudSync.js"></script>
 </body>
 </html>

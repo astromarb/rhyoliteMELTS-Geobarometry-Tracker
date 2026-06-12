@@ -1,4 +1,4 @@
-<!-- ── Bottom-LEFT utility bar (v0.20) — edit + import/export ── -->
+<!-- ── Bottom-LEFT utility bar (v0.20) — edit + import/export + cloud ── -->
 <div id="util-bar">
   <div class="em-wrap" id="em-wrap">
     <button class="btn btn-sm em-toggle-btn" id="em-toggle" data-action="toggleEditMode" title="Toggle edit mode" aria-label="Toggle edit mode" aria-pressed="false">＋</button>
@@ -6,6 +6,16 @@
   <div class="util-divider"></div>
   <button class="btn btn-sm util-btn" data-action="exportData" title="Export data as JSON" aria-label="Export data">⬇ Export</button>
   <button class="btn btn-sm util-btn" data-action="_hImportFileClick" title="Import JSON data file" aria-label="Import data">⬆ Import</button>
+
+  <!-- Cloud controls. Hidden on file:// or when /api/* isn't deployed. -->
+  <div class="util-divider cloud-only is-hidden"></div>
+  <button class="btn btn-sm util-btn cloud-only is-hidden" id="cloud-pull"
+          data-action="cloudPullPrompt" title="Pull snapshot from cloud (overwrites local)">☁ Pull</button>
+  <button class="btn btn-sm util-btn cloud-only admin-only is-hidden" id="cloud-push"
+          data-action="cloudPushPrompt" title="Push current data to cloud">☁ Push</button>
+  <button class="btn btn-sm util-btn cloud-only admin-only is-hidden" id="cloud-history"
+          data-action="cloudHistoryPrompt" title="Browse snapshot history / restore">⏱ History</button>
+  <span class="cloud-badge is-hidden" id="cloud-badge" title="">●</span>
 </div>
 
 <style>
@@ -13,4 +23,67 @@
   .em-toggle-btn{border-radius:50%;width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
   .util-divider{width:1px;height:18px;background:var(--border);margin:0 2px}
   .util-btn{font-size:11px;padding:3px 9px}
+  .cloud-badge{font-size:10px;line-height:1;margin-left:2px}
+  .cloud-badge.public{color:#7aa}
+  .cloud-badge.admin {color:#5d5}
 </style>
+
+<script is:inline>
+  // Toggle cloud-button visibility once cloudSync.js has resolved status,
+  // and expose data-action handlers for the delegated event router.
+  (function () {
+    function reflect() {
+      const c = window.Cloud;
+      if (!c) return;
+      const badge = document.getElementById('cloud-badge');
+      document.querySelectorAll('.cloud-only').forEach(el =>
+        el.classList.toggle('is-hidden', !c.available));
+      document.querySelectorAll('.admin-only').forEach(el =>
+        el.classList.toggle('is-hidden', !c.available || !c.admin));
+      if (badge) {
+        badge.classList.toggle('is-hidden', !c.available);
+        badge.classList.toggle('admin',  c.admin);
+        badge.classList.toggle('public', !c.admin);
+        badge.title = c.admin ? 'Cloud: admin' : 'Cloud: read-only';
+      }
+    }
+    window.addEventListener('cloud:ready', reflect);
+    document.addEventListener('DOMContentLoaded', reflect);
+
+    window.cloudPullPrompt = async function () {
+      if (!confirm('Pull cloud snapshot? This overwrites your local data.')) return;
+      try {
+        const snap = await window.Cloud.pull();
+        window.Cloud.applySnapshot(snap.data);
+        window.toast && window.toast('Pulled cloud snapshot');
+      } catch (e) { window.toast && window.toast('Pull failed: ' + e.message); }
+    };
+
+    window.cloudPushPrompt = async function () {
+      const note = prompt('Optional note for this snapshot (audit log):', '') || '';
+      try {
+        await window.Cloud.push(note);
+        window.toast && window.toast('Pushed to cloud');
+      } catch (e) { window.toast && window.toast('Push failed: ' + e.message); }
+    };
+
+    window.cloudHistoryPrompt = async function () {
+      try {
+        const hist = await window.Cloud.history(25);
+        if (!hist.length) { window.toast && window.toast('No history yet'); return; }
+        const lines = hist.map((h, i) =>
+          `${i+1}. #${h.id}  ${new Date(h.saved_at).toLocaleString()}  ${h.saved_by||''}`);
+        const pick = prompt(
+          'Snapshot history (most recent first). Enter the # to restore, or cancel:\n\n'
+          + lines.join('\n'), '');
+        const idx = Number(pick) - 1;
+        if (!Number.isFinite(idx) || idx < 0 || idx >= hist.length) return;
+        if (!confirm(`Restore #${hist[idx].id} from ${new Date(hist[idx].saved_at).toLocaleString()}?`)) return;
+        await window.Cloud.restore(hist[idx].id);
+        const snap = await window.Cloud.pull();
+        window.Cloud.applySnapshot(snap.data);
+        window.toast && window.toast('Restored');
+      } catch (e) { window.toast && window.toast('History failed: ' + e.message); }
+    };
+  })();
+</script>

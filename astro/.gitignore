@@ -3,3 +3,6 @@ dist
 .astro
 src/env.d.ts
 .DS_Store
+.env
+.env.local
+.vercel
