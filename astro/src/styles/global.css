@@ -465,3 +465,36 @@ body:not(.edit-mode) input:focus,body:not(.edit-mode) textarea:focus,body:not(.e
   .app-body{height:calc(100vh - 84px)}
 }
 
+
+/* ────────────────────────────────────────────────────────────────
+   Theme transitions + "eclipse" reveal animation
+   - Cheap colour crossfade for everything that uses tokens.
+   - Eclipse: a fixed pseudo-element on <body> expands a clip-path
+     circle from the toggle button's center. Origin is set in JS via
+     --theme-x / --theme-y just before .theme-transition is added to
+     the root; class is removed after the animation completes.
+   - prefers-reduced-motion disables the eclipse but keeps the crossfade.
+──────────────────────────────────────────────────────────────── */
+html, body { transition: background-color 260ms ease, color 260ms ease; }
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 0;
+  background: var(--bg);
+  clip-path: circle(0 at var(--theme-x, 50%) var(--theme-y, 50%));
+}
+html.theme-transition body::before {
+  animation: themeEclipse 720ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes themeEclipse {
+  0%   { opacity: 1; clip-path: circle(0          at var(--theme-x, 50%) var(--theme-y, 50%)); }
+  55%  { opacity: 1; clip-path: circle(150vmax    at var(--theme-x, 50%) var(--theme-y, 50%)); }
+  100% { opacity: 0; clip-path: circle(150vmax    at var(--theme-x, 50%) var(--theme-y, 50%)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transition body::before { animation: none; }
+}

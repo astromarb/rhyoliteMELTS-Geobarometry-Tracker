@@ -3667,9 +3667,23 @@ function drawRunHarker(ssid,ox,cwr){
 function toggleTheme(){
   const html=document.documentElement;
   const isLight=html.getAttribute('data-theme')==='light';
-  html.setAttribute('data-theme',isLight?'dark':'light');
-  localStorage.setItem('melts_theme',isLight?'dark':'light');
-  document.getElementById('theme-toggle').textContent=isLight?'🌙':'☀️';
+  const next=isLight?'dark':'light';
+  // Pin eclipse origin to the toggle button (fallback: screen center).
+  const btn=document.getElementById('theme-toggle');
+  if(btn){
+    const r=btn.getBoundingClientRect();
+    html.style.setProperty('--theme-x', (r.left+r.width/2)+'px');
+    html.style.setProperty('--theme-y', (r.top +r.height/2)+'px');
+  }
+  html.classList.add('theme-transition');
+  if(next==='light')html.setAttribute('data-theme','light');
+  else html.removeAttribute('data-theme');
+  localStorage.setItem('melts_theme',next);
+  if(btn){
+    btn.textContent=next==='light'?'☀️':'🌙';
+    btn.setAttribute('aria-pressed',next==='light'?'true':'false');
+  }
+  setTimeout(()=>html.classList.remove('theme-transition'),760);
   // Re-render active Harkers so canvas colours update
   if(S.activePage==='samples')renderSamples();
   if(S.activePage==='runs')renderRuns();
