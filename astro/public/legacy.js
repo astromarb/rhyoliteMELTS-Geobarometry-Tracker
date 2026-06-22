@@ -1,938 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self' blob:; child-src 'self' blob:">
-<title>rhyolite-MELTS Tracker v0.20</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌋</text></svg>">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;
-  --text:#e6edf3;--text-muted:#8b949e;--text-dim:#6e7681;
-  --green:#56d364;--green-dim:#238636;--green-bg:#1f6331;
-  --red:#f85149;--red-dim:#b91c1c;--red-bg:#6e1e1e;
-  --blue:#58a6ff;--blue-bg:#1a3a5c;--blue-dim:#1f6feb;
-  --purple:#d2a8ff;--purple-bg:#3d2170;
-  --yellow:#e3b341;--orange:#f0883e;
-  --gray:#21262d;--r:8px;--mono:'Consolas','Fira Mono',monospace;
-  
-/* Inspector responsive */
-@media (max-width:768px){
-  .nav-tabs-group{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .nav-tabs-group::-webkit-scrollbar{display:none}
-}
-@media (max-width:480px){
-  #hk-inspector{
-    right:6px!important;
-    bottom:6px!important;
-    width:calc(100vw - 12px)!important;
-    max-height:55vh!important;
-    font-size:12px!important;
-  }
-}
-/* canvas colours (used by JS) */
-  --canvas-bg:#161b22;--canvas-bg-dark:#0d1117;--canvas-grid:#21262d;--canvas-axis:#8b949e;
-}
-/* ── LIGHT MODE ── */
-[data-theme="light"]{
-  --bg:#f6f8fa;--surface:#ffffff;--surface2:#f0f2f5;--border:#d0d7de;
-  --text:#1f2328;--text-muted:#57606a;--text-dim:#8c959f;
-  --green:#1a7f37;--green-dim:#1a7f37;--green-bg:#dafbe1;
-  --red:#cf222e;--red-dim:#cf222e;--red-bg:#ffebe9;
-  --blue:#0969da;--blue-bg:#ddf4ff;--blue-dim:#0969da;
-  --purple:#8250df;--purple-bg:#fbefff;
-  --yellow:#9a6700;--orange:#bc4c00;
-  --gray:#d0d7de;
-  --canvas-bg:#ffffff;--canvas-bg-dark:#f6f8fa;--canvas-grid:#e2e5ea;--canvas-axis:#656d76;
-}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
-
-/* ── COLORBLIND MODE CSS overrides (Okabe-Ito: blue replaces green, amber replaces red) ── */
-body.cb-active{--green:#56B4E9;--green-dim:#0072B2;--green-bg:rgba(86,180,233,.18);--red:#E69F00;--red-dim:#b35900;--red-bg:rgba(230,159,0,.18);}
-body.cb-active .cell.success{background:#0072B2!important;border-color:#56B4E9!important}
-body.cb-active .cell.failed{background:#b35900!important;border-color:#E69F00!important}
-body.cb-active .ctr-btn.success{border-color:#0072B2!important;color:#56B4E9!important}
-body.cb-active .ctr-btn.success:hover{background:rgba(86,180,233,.18)!important}
-body.cb-active .ctr-btn.failed{border-color:#b35900!important;color:#E69F00!important}
-body.cb-active .ctr-btn.failed:hover{background:rgba(230,159,0,.18)!important}
-body.cb-active .chip-green{background:rgba(86,180,233,.18)!important;color:#56B4E9!important}
-body.cb-active .chip-red{background:rgba(230,159,0,.18)!important;color:#E69F00!important}
-body.cb-active .chip-done{background:rgba(0,114,178,.18)!important;color:#56B4E9!important;border-color:rgba(0,114,178,.3)!important}
-body.cb-active .btn-danger{background:rgba(230,159,0,.18)!important;color:#E69F00!important;border-color:#b35900!important}
-body.cb-active .btn-success{background:rgba(86,180,233,.18)!important;color:#56B4E9!important;border-color:#0072B2!important}
-body.cb-active .lbl-ok{color:#56B4E9!important}
-body.cb-active .lbl-fail{color:#E69F00!important}
-body.cb-active .fail-item{border-left-color:#E69F00!important}
-body.cb-active .fail-num{color:#E69F00!important}
-body.cb-active .si-bar-fill{background:#0072B2!important}
-body.cb-active .pbar-fill{background:#0072B2!important}
-body.cb-active .tc-pbf{background:#0072B2!important}
-/* ── NAV ── */
-/* ── App header (v0.20 redesign) ── */
-.app-header{background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:14px 22px;gap:18px;flex-shrink:0;min-height:84px}
-.brand-block{display:flex;align-items:center;gap:16px;flex:1;min-width:0}
-.brand-mark{font-size:38px;line-height:1;flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(245,123,32,0.25))}
-.brand-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
-.brand-name{font-size:26px;font-weight:700;color:var(--blue);line-height:1.15;outline:none;cursor:text;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em;padding:1px 6px;margin-left:-6px;border-radius:4px;border:1px dashed transparent;transition:border-color .15s,background .15s}
-.brand-name:hover{border-color:var(--border)}
-.brand-name:focus{border-color:var(--blue);background:var(--surface2)}
-.brand-meta{font-size:12px;color:var(--text);font-weight:500;display:flex;gap:18px;flex-wrap:wrap;align-items:center;min-height:1em;line-height:1.4}
-.brand-meta .meta-item{display:inline-flex;gap:6px;align-items:baseline;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.brand-meta .meta-item strong{color:var(--text-muted);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.6px;flex-shrink:0}
-.brand-meta .meta-item span{color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis}
-.brand-meta .meta-empty{color:var(--text-dim);font-style:italic;font-weight:400}
-.header-controls{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.version-chip{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--text-muted);font-family:var(--mono)}
-.header-ctrl-btn{border-radius:50%!important;width:32px!important;height:32px!important;padding:0!important;display:flex!important;align-items:center;justify-content:center;font-size:15px!important}
-
-/* ── Right-rail navigation ── */
-.right-rail{width:96px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px 6px;gap:4px;overflow-y:auto;overflow-x:hidden}
-.right-rail-label{font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;text-align:center;padding:2px 0 6px;border-bottom:1px solid var(--border);margin-bottom:6px}
-.nav-tab{background:none;border:1px solid transparent;border-radius:8px;color:var(--text-muted);cursor:pointer;font-weight:600;transition:all .15s;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:9px 4px;font-size:11px;width:100%;text-align:center;white-space:normal;line-height:1.2;position:relative}
-.nav-tab:hover{color:var(--text);background:var(--surface2);border-color:var(--border)}
-.nav-tab.active{color:var(--text);background:var(--bg);border-color:var(--blue);box-shadow:inset 3px 0 0 var(--blue)}
-.nav-tab:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
-.nav-icon{font-size:20px;line-height:1}
-.nav-label{font-size:10px;font-weight:600}
-.nav-badge{background:var(--blue);color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;font-weight:700;position:absolute;top:4px;right:4px}
-
-/* -- EDIT MODE -- */
-body:not(.edit-mode) .edit-only{display:none!important}
-body.edit-mode #em-toggle{opacity:1;border-color:var(--blue)}
-/* Edit-mode add popup */
-#edit-add-popup{display:none;position:fixed;min-width:170px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:99999;padding:6px;flex-direction:column;gap:4px;user-select:none}
-#eap-handle{padding:6px 10px 4px;cursor:grab;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
-#eap-handle:active{cursor:grabbing}
-#eap-body{padding:8px;display:flex;flex-direction:column;gap:6px}
-#edit-add-popup.open{display:flex}
-#edit-add-popup button{text-align:left;width:100%;padding:7px 12px;font-size:13px;border-radius:4px}
-.em-wrap{position:relative;display:inline-block}
-#em-toggle{opacity:.55;transition:opacity .2s,border-color .2s}
-/* ── APP BODY ── */
-/* V3-proven pattern: shared sidebar + page siblings in one flex row */
-.app-body{display:flex;flex:1;overflow:hidden}
-.sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.sidebar-header{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.sidebar-header span{font-size:12px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.sb-list{flex:1;overflow-y:auto;padding:4px}
-.si{padding:8px 10px;cursor:pointer;border:1px solid var(--border);border-left:3px solid transparent;border-radius:6px;transition:background .1s;margin-bottom:4px;position:relative}
-.si.dragging{opacity:.45}
-.si.drag-over{outline:2px dashed var(--blue)}
-.si:hover{background:var(--surface2)}
-.si.active{background:var(--surface2);border-color:var(--blue);border-left-color:var(--blue)}
-.si-name{font-size:13px;font-weight:700;color:var(--text);font-family:var(--mono)}
-.si-stats{font-size:12px;color:var(--text-muted);margin-top:2px}
-.si-bar{height:3px;background:var(--gray);border-radius:2px;margin-top:5px;overflow:hidden}
-.si-bar-fill{height:100%;border-radius:2px;background:var(--green-dim);transition:width .3s}
-
-/* PAGES — V3 exact pattern */
-.page{flex:1;overflow-y:auto;padding:20px 20px 70px;display:none}
-.page.active{display:block}
-/* tracker page uses its own inner flex layout */
-#pg-tracker.active{display:flex;flex-direction:column;padding:0}
-.tracker-main{flex:1;overflow-y:auto;padding:20px}
-
-/* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:12px;font-weight:600;transition:background .15s;white-space:nowrap}
-.btn:hover{background:var(--gray)}
-.btn-primary{background:var(--blue-bg);border-color:var(--blue-dim);color:var(--blue)}
-.btn-primary:hover{background:#1f4a72}
-.btn-danger{background:var(--red-bg);border-color:#8b2424;color:var(--red)}
-.btn-danger:hover{background:#7a2121}
-.btn-success{background:var(--green-bg);border-color:var(--green-dim);color:var(--green)}
-.btn-success:hover{background:var(--green-dim)}
-.btn-sm{padding:3px 8px;font-size:11px}
-
-/* ── CARDS ── */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px}
-.card-title{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
-
-/* ── CHIPS / BADGES ── */
-.chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700}
-.chip-green{background:var(--green-bg);color:var(--green)}
-.chip-red{background:var(--red-bg);color:var(--red)}
-.chip-gray{background:var(--gray);color:var(--text-muted)}
-.chip-blue{background:var(--blue-bg);color:var(--blue)}
-.chip-done{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.25)}
-.chip-pct{background:rgba(88,166,255,.15);color:var(--blue);border:1px solid rgba(88,166,255,.25)}
-.chip-thresh{background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)}
-
-/* ── COUNTER ROWS ── */
-.counter-section{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
-.counter-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.counter-label{font-size:12px;font-weight:700;min-width:76px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
-.ctr-btn{padding:4px 9px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:11px;font-weight:700;transition:background .12s;min-width:34px;text-align:center}
-.ctr-btn:hover{background:var(--gray)}
-.ctr-btn.success{border-color:var(--green-dim);color:var(--green)}.ctr-btn.success:hover{background:var(--green-bg)}
-.ctr-btn.failed{border-color:#8b2424;color:var(--red)}.ctr-btn.failed:hover{background:var(--red-bg)}
-.ctr-btn.undo{border-color:#6e40c9;color:var(--purple)}.ctr-btn.undo:hover{background:var(--purple-bg)}
-
-/* ── PROGRESS ── */
-.pbar{height:6px;background:var(--gray);border-radius:6px;overflow:hidden;margin:8px 0}
-.pbar-fill{height:100%;background:var(--green-dim);border-radius:6px;transition:width .3s}
-
-/* ── STATS ROW ── */
-.stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.stat-box{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;min-width:80px;text-align:center}
-.stat-val{font-size:20px;font-weight:700;font-family:var(--mono)}
-.stat-lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-
-/* ── GRID ── */
-.grid-wrap{margin-top:10px}
-.cell-hint{font-size:12px;color:var(--text-muted);margin-bottom:5px}
-.grid{display:grid;grid-template-columns:repeat(20,1fr);gap:3px}
-.cell{aspect-ratio:1;border-radius:2px;cursor:pointer;transition:transform .1s;border:1px solid transparent;position:relative;overflow:hidden}
-.cell::before{content:attr(data-num);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(5px,0.55em,9px);font-weight:600;line-height:1;pointer-events:none;user-select:none;opacity:0.28;color:#fff}
-.cell.not-run::before{color:#6b7280;opacity:0.45}
-/* Non-color status indicator — visible in print, for colorblind users, and at-a-glance */
-.cell::after{position:absolute;top:0;right:1px;font-size:clamp(5px,0.55em,8px);font-weight:700;line-height:1;pointer-events:none;user-select:none;opacity:0.85;color:#fff}
-.cell.success::after{content:'\2713'}/* ✓ */
-.cell.failed::after{content:'\2717'}/* ✗ */
-.cell.not-run::after{content:''}
-.thresh-grid-wrap .cell::after{font-size:7px;top:0;right:0}
-.cell:hover{transform:scale(1.35);z-index:1}
-.cell.not-run{background:var(--gray);border-color:var(--border)}
-.cell.success{background:var(--green-dim);border-color:#2ea043}
-.cell.failed{background:var(--red-dim);border-color:var(--red)}
-.cell:focus-visible{outline:2px solid var(--blue);outline-offset:1px;z-index:2}
-@media print{.cell{transform:none!important}.cell:hover{transform:none!important}}
-
-/* ── Onboarding overlay (first-run wizard) ── */
-#onboarding-overlay{
-  position:fixed;inset:0;z-index:100000;background:var(--bg);
-  display:none;overflow-y:auto;padding:32px 20px;
-}
-#onboarding-overlay.show{display:block}
-.ob-card{
-  max-width:760px;margin:0 auto;background:var(--surface);
-  border:1px solid var(--border);border-radius:12px;
-  padding:32px 36px;box-shadow:0 8px 32px rgba(0,0,0,.45);
-}
-.ob-title{font-size:28px;font-weight:700;color:var(--blue);margin-bottom:6px}
-.ob-sub  {font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
-.ob-paths{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
-.ob-path-btn{
-  background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;
-  padding:22px 18px;text-align:left;cursor:pointer;color:var(--text);
-  transition:border-color .15s,background .15s;font:inherit;
-}
-.ob-path-btn:hover,.ob-path-btn:focus-visible{border-color:var(--blue);background:var(--bg);outline:none}
-.ob-path-icon{font-size:32px;display:block;margin-bottom:6px}
-.ob-path-title{font-size:16px;font-weight:700;color:var(--text);display:block;margin-bottom:4px}
-.ob-path-sub  {font-size:11px;color:var(--text-muted);line-height:1.5}
-.ob-form label{display:block;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-top:14px;margin-bottom:4px}
-.ob-form input[type=text],.ob-form input[type=url],.ob-form textarea{
-  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
-  color:var(--text);padding:7px 10px;font-size:13px;font-family:inherit
-}
-.ob-form input:focus,.ob-form textarea:focus{outline:none;border-color:var(--blue)}
-.ob-section-title{font-size:14px;font-weight:700;margin:20px 0 4px;color:var(--text);border-bottom:1px solid var(--border);padding-bottom:6px}
-.ob-units-list{display:flex;flex-direction:column;gap:6px;margin:8px 0}
-.ob-unit-row{display:flex;gap:6px;align-items:center}
-.ob-unit-row input[type=text]{flex:1}
-.ob-unit-row input[type=color]{width:34px;height:30px;border:1px solid var(--border);border-radius:5px;cursor:pointer;padding:0;background:none;flex-shrink:0}
-.ob-unit-row .btn{flex-shrink:0}
-.ob-callout{
-  background:rgba(227,179,65,.08);border:1px solid rgba(227,179,65,.35);
-  border-left:3px solid var(--yellow);border-radius:5px;
-  padding:8px 12px;font-size:11px;line-height:1.55;color:var(--text);margin:6px 0 4px
-}
-.ob-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;padding-top:18px;border-top:1px solid var(--border)}
-
-/* ── Persistent banner (quota / import errors) ── */
-#persistent-banner{position:fixed;top:0;left:0;right:0;z-index:99999;background:var(--red-bg);color:var(--red);border-bottom:2px solid var(--red);padding:10px 16px;font-size:13px;font-weight:600;display:none;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-#persistent-banner.show{display:flex}
-#persistent-banner button{margin-left:auto;background:var(--red);color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}
-
-.cell-locked{cursor:default;opacity:0.55;pointer-events:none}
-.thresh-grid-wrap{margin-top:10px}
-.thresh-grid-wrap .grid{grid-template-columns:repeat(auto-fill,12px);gap:1px}
-.thresh-grid-wrap .cell{width:12px;height:12px;border-radius:1px}
-.thresh-grid-wrap .cell:hover{transform:scale(2.2);z-index:2}
-.thresh-group{margin-bottom:14px}
-.thresh-group-lbl{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px}
-.lbl-nr{color:var(--text-muted)}
-.lbl-ok{color:var(--green)}
-.lbl-fail{color:var(--red)}
-.thresh-group-count{font-size:11px;background:var(--surface2,#374151);border-radius:8px;padding:2px 6px;font-weight:700}
-/* ── TABS ── */
-.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:14px}
-.tab-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);cursor:pointer;padding:7px 14px;font-size:12px;font-weight:600;transition:color .15s}
-.tab-btn:hover{color:var(--text)}
-.tab-btn.active{color:var(--text);border-bottom-color:var(--blue)}
-
-/* ── FAILED LIST ── */
-.fail-item{background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:6px;padding:8px 10px;margin-bottom:7px;display:flex;align-items:center;gap:8px}
-.fail-num{font-size:12px;font-weight:700;color:var(--red);min-width:30px;font-family:var(--mono)}
-.fail-item input{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:3px 7px;font-size:11px;flex:1}
-.fail-item input:focus{outline:none;border-color:var(--blue)}
-
-/* ── OVERVIEW ── */
-.ov-banner{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
-.ovs{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center}
-.ovs-v{font-size:28px;font-weight:700;font-family:var(--mono)}
-.ovs-l{font-size:12px;color:var(--text-muted);margin-top:3px}
-.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.ovc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;transition:all .15s}
-.ovc:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
-.ovc-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
-.ovc-n{font-size:13px;font-weight:700;font-family:var(--mono)}
-.ovc-stats{display:flex;gap:6px;font-size:11px;margin-bottom:7px;flex-wrap:wrap}
-.ov-mg{display:flex;flex-wrap:wrap;gap:2px;margin:6px 0}
-.ov-mc{width:13px;height:13px;border-radius:2px}
-.ov-mc.not-run{background:var(--gray)}
-.ov-mc.success{background:var(--green-dim)}
-.ov-mc.failed{background:var(--red-dim)}
-.ov-pb{height:4px;background:#374151;border-radius:2px;overflow:hidden;margin-top:6px}
-.ov-pbf{height:100%;background:#e5e7eb;border-radius:2px}
-
-/* ── THRESHOLDING ── */
-.tp-layout{display:flex;gap:16px;width:100%}
-.tp-sidebar{width:220px;min-width:220px}
-.tp-main{flex:1;min-width:0}
-.tss{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;position:sticky;top:0}
-.tss-hdr{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
-.tss-item{padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;display:flex;align-items:center;justify-content:space-between}
-.tss-item:last-child{border-bottom:none}
-.tss-item:hover{background:var(--surface2)}
-.tss-item.active{background:rgba(31,111,235,.12)}
-.tss-n{font-size:12px;font-weight:700;font-family:var(--mono)}
-.tss-c{font-size:11px;color:var(--text-muted)}
-.thresh-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
-.thresh-hdr{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:var(--surface);border-bottom:1px solid var(--border);font-size:13px}
-.thresh-drag-handle{cursor:grab;color:var(--text-muted);font-size:14px;padding:0 4px;flex-shrink:0;user-select:none;opacity:.55;transition:opacity .15s}
-.thresh-drag-handle:hover{opacity:1}
-.thresh-card.drag-over{outline:2px dashed var(--blue);outline-offset:-2px}
-.thresh-card.dragging{opacity:.45}
-.thresh-hdr:hover{background:var(--surface2)}
-.thresh-hdr .th-name{font-size:12px;font-weight:700;font-family:var(--mono);flex:1;color:var(--blue)}
-.thresh-hdr .th-cut{font-size:11px;color:var(--text-muted);margin-right:4px}
-.thresh-body{padding:12px 14px;display:none;font-size:12px}
-.thresh-body.open{display:block}
-.tc-pbar{flex:1;height:8px;background:var(--gray);border-radius:4px;overflow:hidden;min-width:60px}
-.tc-pbf{height:100%;background:var(--text-muted);border-radius:4px}
-.comp-table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:12px}
-.comp-table th{padding:9px 11px;text-align:left;color:var(--text-muted);border-bottom:1px solid var(--border);font-weight:700;font-size:14px}
-.comp-table td{padding:9px 11px;border-bottom:1px solid var(--border);font-size:14px}
-.comp-table tr:last-child td{border-bottom:none}
-
-/* ── MODAL ── */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100000;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
-.modal-bg.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;min-width:340px;max-width:460px;width:90%}
-.modal h2{font-size:15px;font-weight:700;margin-bottom:14px}
-.modal label{display:block;font-size:12px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;margin-top:11px}
-.modal input,.modal textarea,.modal select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 9px;font-size:12px}
-.modal input:focus,.modal textarea:focus{outline:none;border-color:var(--blue)}
-body:not(.edit-mode) input:focus,body:not(.edit-mode) textarea:focus,body:not(.edit-mode) select:focus{outline:none!important;box-shadow:none!important}
-.modal-footer{display:flex;justify-content:flex-end;gap:7px;margin-top:18px}
-.modal-sub{font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.5}
-
-/* ── TOAST ── */
-
-/* ── 100-cell oxide grid ─────────────────────────────────────────────────── */
-
-/* ── Resizable sidebar ───────────────────────────────────────────────────── */
-.sidebar-resizer{width:5px;cursor:col-resize;background:transparent;flex-shrink:0;transition:background .15s;z-index:10;position:relative}
-.sidebar-resizer::after{content:'';position:absolute;top:0;left:1px;width:3px;height:100%;background:var(--border);border-radius:2px;transition:background .15s}
-.sidebar-resizer:hover::after,.sidebar-resizer.dragging::after{background:var(--blue)}
-.oxide-grid-wrap{margin:12px 0 6px}
-.oxide-grid-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
-.oxide-grid{display:grid;grid-template-columns:repeat(50,1fr);grid-template-rows:1fr 1fr;gap:2px;width:100%;height:28px}.oxide-grid.compact{height:20px;gap:1px}
-.oxide-cell{border-radius:2px;position:relative;min-height:10px}
-.oxide-cell:hover .oxide-tip{display:block}
-.oxide-tip{display:none;position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:rgba(13,17,23,.95);color:#e6edf3;border:1px solid #30363d;border-radius:5px;padding:4px 8px;font-size:10px;font-family:var(--mono);white-space:nowrap;z-index:9990;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.5)}
-.oxide-legend{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:8px}
-.oxide-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted)}
-.oxide-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-.toast{position:fixed;bottom:18px;right:18px;background:var(--green-dim);color:#fff;padding:8px 14px;border-radius:7px;font-size:12px;font-weight:600;z-index:1000;opacity:0;transition:opacity .25s;pointer-events:none;display:flex;align-items:center;gap:10px;max-width:420px}
-.toast.show{pointer-events:auto}
-.toast .toast-action{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.5);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px}
-.toast .toast-action:hover{background:rgba(255,255,255,0.35)}
-.toast.show{opacity:1}
-.toast.err{background:var(--red-dim)}
-
-/* ── MISC ── */
-.empty{color:var(--text-muted);font-size:12px;text-align:center;padding:40px 20px;display:flex;flex-direction:column;align-items:center;gap:10px}
-.empty-icon{font-size:32px}
-.flex-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-
-/* ── HARKER DIAGRAMS ── */
-.harker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px;margin-top:14px}
-.batch-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;cursor:default;transition:background .12s}
-.batch-card.drag-over{outline:2px dashed var(--blue)}
-.ov-batch-section{margin-top:24px;padding-top:14px;border-top:1px solid var(--border)}
-.harker-canvas{border-radius:6px;background:var(--surface);display:block;max-height:220px}
-
-/* ── SAMPLES PAGE ── */
-.samples-accordion-item{border:1px solid var(--border);border-radius:6px;margin-bottom:8px;overflow:hidden}
-
-/* ── JOURNAL ── */
-/* (journal styles removed in v0.20) */
-.sample-item-wrap{position:relative}
-.sample-item-wrap.dragging{opacity:.45}
-.sample-item-wrap.drag-over{outline:2px dashed var(--blue);border-radius:var(--r)}
-.unit-drag-row.dragging{opacity:.45}
-.unit-drag-row.drag-over{outline:2px dashed var(--blue);outline-offset:-2px;background:var(--surface2)}
-.samples-accordion-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer}
-.samples-accordion-hdr:hover{background:var(--surface2)}
-.samples-accordion-body{padding:14px;border-top:1px solid var(--border);background:var(--bg)}
-
-
-
-/* ══════════════════════════════════════════════════════════════════
-   RESPONSIVE / MOBILE STYLES
-   ══════════════════════════════════════════════════════════════════ */
-@media (max-width:768px){
-  /* Nav */
-  nav{height:auto;min-height:48px;flex-wrap:wrap;padding:6px 8px;gap:4px}
-  nav .brand{margin-right:8px}
-  nav .brand-name{font-size:20px}
-  nav .brand-sub{font-size:11px;max-width:200px}
-  .nav-tabs-group{display:flex;flex-wrap:wrap;gap:2px;width:100%;margin-left:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .nav-tabs-group::-webkit-scrollbar{display:none}
-  .nav-tab{font-size:12px;padding:4px 8px;white-space:nowrap}
-
-  /* Sidebar: collapsible on mobile */
-  .app-body{height:auto;min-height:calc(100svh - 90px);flex-direction:column}
-  .sidebar{width:100%!important;min-width:100%!important;max-height:180px;border-right:none;border-bottom:1px solid var(--border);flex-shrink:0;overflow-y:auto}
-  .sidebar-resizer{display:none!important}
-  .page{padding:10px!important;overflow-y:auto;-webkit-overflow-scrolling:touch}
-
-  /* Cards & grids */
-  .card{padding:10px 12px}
-  .stat-box{padding:10px 12px;min-width:50px!important;flex:1}
-  .stat-box div:first-child{font-size:18px!important}
-
-  /* Runs layout stack */
-  #tracker-main>div:first-child{flex-direction:column!important}
-
-  /* Harker grid: 2 cols on mobile */
-  #harker-wrap{grid-template-columns:repeat(2,1fr)!important}
-  [id^="rh-grid-"]{grid-template-columns:repeat(2,1fr)!important}
-
-  /* Oxide grid: reduce cell size */
-  .oxide-grid{gap:1px}
-
-  /* Util bar */
-  #util-bar{bottom:8px;right:8px;padding:4px 6px;gap:4px}
-  #util-bar button{width:24px!important;height:24px!important;font-size:12px!important}
-  #util-bar .btn-sm{font-size:10px!important;padding:2px 6px!important}
-
-  /* Modals */
-  .modal{max-width:96vw!important;max-height:90svh;overflow-y:auto}
-
-  /* Table overflow */
-  .comp-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{min-width:400px}
-
-  /* Batch grid */
-  .ov-grid{grid-template-columns:repeat(2,1fr)!important}
-
-  /* Edit popup */
-  #edit-add-popup{min-width:140px}
-}
-
-@media (max-width:900px){
-  .right-rail{width:72px}
-  .nav-label{font-size:9px}
-  .nav-icon{font-size:17px}
-}
-@media (max-width:600px){
-  .app-header{min-height:0;padding:10px 14px;flex-wrap:wrap}
-  .brand-mark{font-size:28px}
-  .brand-name{font-size:18px}
-  .brand-meta{font-size:11px;gap:10px}
-  .brand-meta .meta-item{max-width:none}
-  .right-rail{width:60px;padding:8px 4px}
-  .nav-label{display:none}
-  .nav-icon{font-size:19px}
-  .stat-box div:first-child{font-size:16px!important}
-  #harker-wrap{grid-template-columns:1fr!important}
-  [id^="rh-grid-"]{grid-template-columns:1fr!important}
-  .ov-grid{grid-template-columns:1fr!important}
-}
-
-/* Prevent 100vh mobile bug. Header is now min 84px (or wraps narrower).
-   100svh accounts for mobile address-bar resize. */
-.app-body{height:calc(100svh - 84px)}
-@supports not (height:100svh){
-  .app-body{height:calc(100vh - 84px)}
-}
-
-</style>
-</head>
-<body>
-
-<!-- ─────────────── ONBOARDING OVERLAY (first-run wizard) ─────────────── -->
-<div id="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="ob-title">
-
-  <!-- Step 1 — Choose path -->
-  <div class="ob-card" id="ob-step-choose">
-    <div class="ob-title" id="ob-title">🌋 Welcome to rhyolite-MELTS Tracker</div>
-    <div class="ob-sub">
-      A petrology Monte-Carlo simulation companion. To get started, either continue an existing
-      project (from a previously exported JSON file) or set up a new one.
-      <br><br>
-      <span style="color:var(--text-muted)">All data is stored locally in this browser. Export to JSON regularly to back up.</span>
-    </div>
-
-    <div class="ob-paths">
-      <button class="ob-path-btn" type="button" onclick="document.getElementById('ob-existing-file').click()">
-        <span class="ob-path-icon">📂</span>
-        <span class="ob-path-title">Load existing project</span>
-        <span class="ob-path-sub">Pick a JSON file you previously exported with this tool. Your existing samples, runs, and settings will be restored.</span>
-      </button>
-      <button class="ob-path-btn" type="button" onclick="obShowNewProject()">
-        <span class="ob-path-icon">✨</span>
-        <span class="ob-path-title">Start a new project</span>
-        <span class="ob-path-sub">Set up project identity (title, owner, citation) and define the geological units in your study.</span>
-      </button>
-    </div>
-
-    <input type="file" id="ob-existing-file" accept=".json" style="display:none" onchange="obHandleExistingFile(event)">
-
-    <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--text-muted)">
-      v<span id="ob-version-label"></span> · You can skip this and configure later, but you'll want to set citation info before publishing.
-      <br><a href="#" onclick="event.preventDefault();obSkip()" style="color:var(--blue)">Skip for now</a>
-    </div>
-  </div>
-
-  <!-- Step 2 — New project form -->
-  <div class="ob-card ob-form" id="ob-step-new" style="display:none">
-    <div class="ob-title">✨ New Project</div>
-    <div class="ob-sub">Fill in what you know now — every field can be edited later in Settings.</div>
-
-    <div class="ob-section-title">Project identity</div>
-
-    <label for="ob-title-in">Project Title <span style="color:var(--red)">*</span></label>
-    <input id="ob-title-in" type="text" placeholder="e.g. Kīlauea Catchment Petrology Study" autocomplete="off">
-
-    <label for="ob-owner-in">Project Owner <span style="color:var(--red)">*</span></label>
-    <input id="ob-owner-in" type="text" placeholder="e.g. Marvi Lastname (M.Sc. candidate)" autocomplete="off">
-
-    <label for="ob-advisors-in">Advisors</label>
-    <input id="ob-advisors-in" type="text" placeholder="e.g. Prof. A. Jones, Dr. B. Lee" autocomplete="off">
-
-    <div class="ob-section-title">Publication / provenance <span style="font-weight:400;color:var(--text-muted);font-size:11px;text-transform:none;letter-spacing:0">(optional now — required before thesis submission)</span></div>
-
-    <label for="ob-citation-in">Citation text (free-form)</label>
-    <textarea id="ob-citation-in" rows="3" placeholder="e.g. Lastname, M. (2026). rhyolite-MELTS Tracker [Software]. https://doi.org/10.xxxx/zenodo.xxxxx"></textarea>
-
-    <label for="ob-license-in">License (SPDX identifier)</label>
-    <input id="ob-license-in" type="text" placeholder="e.g. MIT, CC-BY-4.0, GPL-3.0-or-later" autocomplete="off">
-
-    <label for="ob-repo-in">Source repository URL</label>
-    <input id="ob-repo-in" type="url" placeholder="https://github.com/your-handle/melts-tracker" autocomplete="off">
-
-    <label for="ob-doi-in">DOI</label>
-    <input id="ob-doi-in" type="text" placeholder="10.5281/zenodo.0000000" autocomplete="off">
-
-    <div class="ob-section-title">Geological units in this study</div>
-    <div class="ob-callout">
-      ⚠ <strong>Units must be created here first</strong>, then they can be assigned to samples.
-      Add every geological unit you expect to sample. You can rename, recolour, or add more later from Settings.
-    </div>
-    <div class="ob-units-list" id="ob-units-list"><!-- rows injected by JS --></div>
-    <button class="btn btn-sm" type="button" onclick="obAddUnitRow()">＋ Add another unit</button>
-
-    <div class="ob-actions">
-      <button class="btn" type="button" onclick="obBackToChoose()">← Back</button>
-      <button class="btn btn-primary" type="button" onclick="obSubmitNewProject()">Create Project →</button>
-    </div>
-  </div>
-</div>
-
-<!-- Persistent banner (quota / import errors / save-blocked) -->
-<div id="persistent-banner" role="alert" aria-live="assertive">
-  <span id="persistent-banner-msg"></span>
-  <button type="button" onclick="dismissPersistentBanner()" aria-label="Dismiss banner">Dismiss</button>
-</div>
-
-<!-- ─────────────── HEADER (v0.20 redesigned) ─────────────── -->
-<header class="app-header" role="banner">
-  <div class="brand-block">
-    <div class="brand-mark" aria-hidden="true">🌋</div>
-    <div class="brand-text">
-      <div class="brand-name" id="app-title" contenteditable="true" spellcheck="false"
-           role="textbox" aria-label="Project title (click to edit)"
-           title="Click to edit the project title"
-           onblur="saveAppTitle(this.textContent)"
-           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">rhyolite-MELTS Tracker</div>
-      <div class="brand-meta" id="brand-sub-line"><span class="meta-empty">No owner set — configure in Settings</span></div>
-    </div>
-  </div>
-  <div class="header-controls">
-    <span class="version-chip" id="version-chip" title="App version">v0.20</span>
-    <button class="btn btn-sm header-ctrl-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" aria-pressed="false">🌙</button>
-    <button class="btn btn-sm header-ctrl-btn" id="cb-toggle" onclick="toggleCB()" title="Toggle colorblind-safe palette" aria-label="Toggle colorblind mode" aria-pressed="false">👁</button>
-  </div>
-</header>
-<input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
-<!-- EDIT-MODE ADD POPUP (body-level to escape nav overflow clipping) -->
-<div id="edit-add-popup">
-  <div id="eap-body">
-  <button class="btn btn-primary btn-sm" onclick="openNewSimset()">＋ Run</button>
-  <button class="btn btn-sm" onclick="openAddSample()" style="background:var(--blue-dim);border-color:var(--blue);color:#fff">＋ Sample</button>
-  <button class="btn btn-sm btn-primary" onclick="openModal('modal-add-batch')">＋ Batch</button>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-
-<!-- ── Bottom-LEFT utility bar (v0.20) — edit + import/export ── -->
-<div id="util-bar" style="
-  position:fixed;
-  bottom:14px;
-  left:16px;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  z-index:9000;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:24px;
-  padding:5px 10px;
-  box-shadow:0 4px 18px rgba(0,0,0,.35);
-">
-  <div class="em-wrap" id="em-wrap">
-    <button class="btn btn-sm" id="em-toggle" onclick="toggleEditMode()" title="Toggle edit mode" aria-label="Toggle edit mode" aria-pressed="false" style="border-radius:50%;width:28px;height:28px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700">＋</button>
-  </div>
-  <div style="width:1px;height:18px;background:var(--border);margin:0 2px"></div>
-  <button class="btn btn-sm" onclick="exportData()" title="Export data as JSON" aria-label="Export data" style="font-size:11px;padding:3px 9px">⬇ Export</button>
-  <button class="btn btn-sm" onclick="document.getElementById('import-file').click()" title="Import JSON data file" aria-label="Import data" style="font-size:11px;padding:3px 9px">⬆ Import</button>
-</div>
-
-<!-- Add Batch Modal -->
-<div class="modal-bg" id="modal-add-batch">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:420px">
-    <h2>📦 New Batch</h2>
-    <label>Batch Name</label>
-    <input id="batch-name-in" type="text" placeholder="e.g. TIC High-P Series" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:10px">
-    <label>Short Note <span style="font-weight:400;font-style:italic;color:var(--text-muted)">(displayed in Batches view)</span></label>
-    <input id="batch-note-in" type="text" placeholder="Brief description..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:16px">
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn" onclick="closeModal('modal-add-batch')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveBatch()">Create Batch</button>
-    </div>
-  </div>
-</div>
-<!-- EDIT BATCH MODAL -->
-<div class="modal-bg" id="modal-edit-batch">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:440px">
-    <h2>✏ Edit Batch</h2>
-    <input type="hidden" id="edit-batch-id">
-    <label>Batch Name</label>
-    <input id="edit-batch-name" type="text" placeholder="Batch name..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:10px">
-    <label>Subtitle / Note</label>
-    <input id="edit-batch-note" type="text" placeholder="Short description..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px 10px;font-size:13px;margin-bottom:10px">
-    <label style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      Batch Colour
-      <input id="edit-batch-color" type="color" value="#58a6ff" style="width:36px;height:28px;border:none;background:none;cursor:pointer;padding:0">
-    </label>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn" onclick="closeModal('modal-edit-batch')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEditBatch()">Save</button>
-    </div>
-  </div>
-</div>
-<!-- APP BODY — sidebar + pages as siblings (V3 proven pattern) -->
-<div class="app-body">
-
-  <!-- SHARED SIDEBAR (hidden on overview) -->
-  <div class="sidebar" id="main-sidebar">
-    <div class="sidebar-header"><span>Runs (<span id="sb-cnt">0</span>)</span></div>
-    <div class="sb-list" id="sb-list"></div>
-  </div>
-  <!-- Drag-to-resize divider (visible only when sidebar is visible) -->
-  <div class="sidebar-resizer" id="sidebar-resizer" title="Drag to resize sidebar"></div>
-
-  <!-- SAMPLES PAGE -->
-  <div class="page" id="pg-samples"></div>
-
-  <!-- RUNS PAGE (was Tracker) -->
-  <div class="page active" id="pg-runs">
-    <div class="tracker-main" id="tracker-main">
-      <div class="empty"><div class="empty-icon">👈</div><p>Select a simulation set from the sidebar.</p></div>
-    </div>
-  </div>
-
-  <!-- OVERVIEW PAGE (no sidebar) -->
-  <div class="page" id="pg-overview"></div>
-
-  <!-- THRESHOLDING PAGE -->
-  <div class="page" id="pg-thresh"></div>
-
-  <!-- PRESSURE VISUALIZATION PAGE -->
-  <div class="page" id="pg-pvis"></div>
-
-  <!-- SETTINGS PAGE -->
-  <div class="page" id="pg-settings"></div>
-
-  <!-- ─────────────── RIGHT-RAIL NAVIGATION (v0.20) ─────────────── -->
-  <nav class="right-rail" role="navigation" aria-label="App pages">
-    <div class="right-rail-label">Pages</div>
-    <div role="tablist" aria-label="App pages" style="display:flex;flex-direction:column;gap:4px">
-      <button class="nav-tab" data-page="samples"  role="tab" aria-selected="false" onclick="showPage('samples')"><span class="nav-icon" aria-hidden="true">🗄</span><span class="nav-label">Samples</span></button>
-      <button class="nav-tab active" data-page="runs" role="tab" aria-selected="true"  onclick="showPage('runs')"><span class="nav-icon" aria-hidden="true">🔬</span><span class="nav-label">Runs</span></button>
-      <button class="nav-tab" data-page="overview" role="tab" aria-selected="false" onclick="showPage('overview')"><span class="nav-icon" aria-hidden="true">📦</span><span class="nav-label">Batches</span></button>
-      <button class="nav-tab" data-page="thresh"   role="tab" aria-selected="false" onclick="showPage('thresh')"><span class="nav-icon" aria-hidden="true">📊</span><span class="nav-label">P&nbsp;Thresh</span><span id="thresh-badge" class="nav-badge" style="display:none">0</span></button>
-      <button class="nav-tab" data-page="pvis"     role="tab" aria-selected="false" onclick="showPage('pvis')"><span class="nav-icon" aria-hidden="true">🔭</span><span class="nav-label">Pressure&nbsp;Viz</span></button>
-      <button class="nav-tab" data-page="settings" role="tab" aria-selected="false" onclick="showPage('settings')"><span class="nav-icon" aria-hidden="true">⚙</span><span class="nav-label">Settings</span></button>
-    </div>
-  </nav>
-
-</div>
-
-<!-- ══ MODALS ══ -->
-
-<!-- Confirm-reset modal (requires typed "RESET" to enable destroy button) -->
-<div class="modal-bg" id="modal-confirm-reset">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:480px;border:1px solid var(--red)">
-    <h2 style="color:var(--red)">🗑 Reset All Data</h2>
-    <p class="modal-sub">This will <strong>permanently erase</strong> every sample, run, threshold, batch, and setting in this browser. Your most recent state will be kept as a backup snapshot (last 3 are retained) — but only for this browser. Export first if you might need this data again.</p>
-    <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">To confirm, type <strong style="color:var(--red);font-family:var(--mono)">RESET</strong> below.</p>
-    <input id="reset-confirm-input" type="text" placeholder="Type RESET" autocomplete="off"
-      oninput="document.getElementById('reset-confirm-btn').disabled=this.value.trim()!=='RESET'"
-      style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:8px 10px;font-family:var(--mono);font-size:14px;margin-bottom:14px;letter-spacing:2px">
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-confirm-reset')">Cancel</button>
-      <button class="btn btn-danger" id="reset-confirm-btn" disabled onclick="_doResetData()">Permanently Reset</button>
-    </div>
-  </div>
-</div>
-
-<!-- Paste-P Import Summary (lists skipped / unmatched / locked rows) -->
-<div class="modal-bg" id="modal-paste-summary">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:680px">
-    <h2>📋 Paste Import Summary</h2>
-    <p class="modal-sub" id="pps-counts" style="margin-bottom:8px"></p>
-    <div id="pps-details" style="font-family:var(--mono);font-size:11px;max-height:340px;overflow:auto;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:8px;white-space:pre-wrap;word-break:break-all"></div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeModal('modal-paste-summary')">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- Paste P Results -->
-<div class="modal-bg" id="modal-paste-p">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:520px">
-    <h2>📋 Paste Pressure Results</h2>
-    <p class="modal-sub">Paste your tab-separated table from Excel.<br>
-      Format per line: <code>SAMPLE-MC-NUM-MELTS_Auto&nbsp;&nbsp;VALUE</code><br>
-      A numeric value → 🟩 P solution obtained &nbsp;|&nbsp; <code>-</code> → 🟥 No solution found.<br>
-      Cells not in the list remain unchanged.</p>
-    <input type="hidden" id="pp-sid">
-    <input type="hidden" id="pp-tid">
-    <label>Paste table here</label>
-    <textarea id="pp-data" rows="10" style="resize:vertical;font-family:var(--mono);font-size:11px"
-              placeholder="KCP-109-A-MC-148-MELTS_Auto&#9;158&#10;KCP-109-A-MC-1-MELTS_Auto&#9;-"></textarea>
-    <div id="pp-preview" style="font-size:11px;color:var(--text-muted);margin-top:6px"></div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-paste-p')">Cancel</button>
-      <button class="btn btn-primary" onclick="applyPastedP()">Apply</button>
-    </div>
-  </div>
-</div>
-
-<!-- View Paste Record -->
-<div class="modal-bg" id="modal-view-record">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:560px">
-    <h2>📄 Paste Record</h2>
-    <p class="modal-sub">Original table as pasted. Values are stored per-cell alongside filenames.</p>
-    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
-      <span id="vr-meta" style="font-size:11px;color:var(--text-muted);flex:1"></span>
-      <button class="btn btn-sm" onclick="copyRecord()">📋 Copy</button>
-    </div>
-    <textarea id="vr-data" rows="12" readonly
-      style="resize:vertical;font-family:var(--mono);font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);width:100%;box-sizing:border-box;padding:8px"></textarea>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-view-record')">Close</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add Sample -->
-<div class="modal-bg" id="modal-add-sample">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1">
-    <h2>✦ Add Sample</h2>
-    <p class="modal-sub">Register a new parent sample (whole-rock composition).</p>
-    <label>Sample Name / ID</label>
-    <input type="text" id="as-name" placeholder="e.g. KCP-109-X">
-    <label>Notes <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
-    <textarea id="as-notes" rows="2" style="resize:vertical" placeholder="Any additional notes…"></textarea>
-    <label>Rock Type <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
-    <input type="text" id="as-rocktype" placeholder="e.g. Rhyolite, Dacite, Basalt…">
-    <label>Geological Unit <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
-    <select id="as-unit-id" style="margin-bottom:4px">
-      <option value="">— None / Unassigned —</option>
-    </select>
-    <div id="as-unit-preview" style="font-size:10px;color:var(--text-muted);min-height:14px"></div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-add-sample')">Cancel</button>
-      <button class="btn btn-primary" onclick="createSampleOnly()">Create Sample</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- Add / Edit Unit -->
-<div class="modal-bg" id="modal-unit">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:420px">
-    <h2 id="unit-modal-title">＋ Add Geological Unit</h2>
-    <input type="hidden" id="unit-edit-idx" value="-1">
-    <label>Unit Name <span style="color:var(--red);font-weight:700">*</span></label>
-    <input type="text" id="unit-name" placeholder="e.g. Bishop Tuff">
-    <label>Abbreviation <span style="color:var(--red);font-weight:700">*</span></label>
-    <input type="text" id="unit-abbr" placeholder="e.g. BT" style="width:120px">
-    <label style="margin-top:10px;display:block">Display Color</label>
-    <div id="unit-color-picker" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;margin-bottom:4px"></div>
-    <input type="hidden" id="unit-color" value="#58a6ff">
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-unit')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveUnitModal()">Save Unit</button>
-    </div>
-  </div>
-</div>
-
-<!-- New Simulation Set -->
-<div class="modal-bg" id="modal-new-simset">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:480px">
-    <h2>🔬 Add Run</h2>
-    <p class="modal-sub">Every simulation set is associated with a parent sample. Add samples first in the <strong>🧪 Samples</strong> tab.</p>
-    <div id="simset-no-samples-warn" style="display:none;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);border-radius:6px;padding:10px;margin-bottom:12px;font-size:12px;color:#f85149">
-      ⚠ No samples found. Please add a sample in the <strong>🧪 Samples</strong> tab first, then return here.
-    </div>
-    <label>Parent Sample <span style="color:var(--red);font-weight:700">*</span></label>
-    <select id="simset-sample-sel" style="margin-bottom:12px"></select>
-    <label>Run Type <span style="color:var(--red);font-weight:700">*</span></label>
-    <select id="simset-run-type" onchange="syncRunType(this.value)" style="margin-bottom:12px">
-      <option value="monte_carlo">Monte Carlo</option>
-    </select>
-    <div id="simset-mc-options">
-      <label>Number of Simulations <span style="color:var(--red);font-weight:700">*</span></label>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;margin-bottom:12px">
-        <select id="simset-total-sel" onchange="syncSimTotal(this.value)">
-          <option value="50">50</option>
-          <option value="100">100</option>
-          <option value="200" selected>200</option>
-          <option value="500">500</option>
-          <option value="custom">Custom…</option>
-        </select>
-        <input type="number" id="simset-total-custom" placeholder="Enter number" min="1" max="9999" style="display:none;width:140px">
-      </div>
-    </div>
-    <label>Run Name</label>
-    <input type="text" id="simset-name" placeholder="Auto-filled — edit if needed">
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-new-simset')">Cancel</button>
-      <button class="btn btn-primary" id="simset-create-btn" onclick="createSimset()">Create</button>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Sample -->
-<div class="modal-bg" id="modal-edit-sample">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:480px">
-    <h2 id="es-modal-title">✏ Edit</h2>
-    <input type="hidden" id="es-id">
-    <input type="hidden" id="es-type"> <!-- "sample" | "simset" -->
-    <label>Name</label>
-    <input type="text" id="es-name">
-    <label>Notes</label>
-    <textarea id="es-notes" rows="3" style="resize:vertical"></textarea>
-    <!-- Sample-only fields -->
-    <div id="es-sample-fields">
-      <label>Rock Type <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
-      <input type="text" id="es-rocktype" placeholder="e.g. Rhyolite, Dacite, Basalt…">
-      <label>Geological Unit <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
-      <select id="es-unit-id" style="margin-bottom:4px">
-        <option value="">— None / Unassigned —</option>
-      </select>
-      <div id="es-unit-preview" style="font-size:10px;color:var(--text-muted);min-height:14px"></div>
-    </div>
-    <!-- Simset-only fields -->
-    <div id="es-simset-fields" style="display:none">
-      <label>Parent Sample</label>
-      <select id="es-parent-sample" style="margin-bottom:4px"></select>
-      <div id="es-parent-preview" style="font-size:11px;color:var(--text-muted);min-height:14px;margin-bottom:4px"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-edit-sample')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEditSample()">Save</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- Re-link Orphaned Run Modal -->
-<div class="modal-bg" id="modal-relink">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1" style="max-width:440px">
-    <h2>🔗 Re-link Run to Sample</h2>
-    <p class="modal-sub">This run has no parent sample (it was deleted). Choose a new parent sample to re-link it.</p>
-    <input type="hidden" id="rl-ssid">
-    <label>Run <span style="color:var(--text-muted);font-weight:400;text-transform:none">(read-only)</span></label>
-    <input type="text" id="rl-run-name" readonly style="opacity:.7;cursor:default">
-    <label>New Parent Sample <span style="color:var(--red);font-weight:700">*</span></label>
-    <select id="rl-sample-sel" style="margin-bottom:4px"></select>
-    <div id="rl-sample-preview" style="font-size:11px;color:var(--text-muted);min-height:16px;margin-bottom:8px"></div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-relink')">Cancel</button>
-      <button class="btn btn-primary" onclick="relinkOrphan()">🔗 Re-link</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add Threshold -->
-<div class="modal-bg" id="modal-add-thresh">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1">
-    <h2>📊 Add Threshold</h2>
-    <p class="modal-sub">New threshold tracker for <strong id="at-sname"></strong>.<br>Each threshold gets its own full 200-cell composition grid.</p>
-    <input type="hidden" id="at-sid">
-    <label>Threshold Name</label>
-    <input type="text" id="at-name" placeholder="e.g. THRESHOLD-4">
-    <label>Cutoff Value</label>
-    <input type="text" id="at-cutoff" placeholder="e.g. 4.0">
-    <label>Pressure Unit <span style="color:var(--red);font-weight:700">*</span></label>
-    <select id="at-unit" style="margin-bottom:4px">
-      <option value="">— Select unit —</option>
-      <option value="MPa">MPa (megapascals)</option>
-      <option value="kbar">kbar (kilobars)</option>
-      <option value="GPa">GPa (gigapascals)</option>
-      <option value="bar">bar</option>
-      <option value="wt%">wt%</option>
-    </select>
-    <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px">Pasted P values will be interpreted in this unit. Must be chosen at creation time to avoid silent unit confusion.</div>
-    <label>Description <span style="font-weight:400;text-transform:none;color:var(--text-dim)">(optional)</span></label>
-    <textarea id="at-desc" rows="2" style="resize:vertical" placeholder="Brief notes…"></textarea>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-add-thresh')">Cancel</button>
-      <button class="btn btn-primary" onclick="createThreshold()">Create</button>
-    </div>
-  </div>
-</div>
-
-<!-- Pressure Stats -->
-<div class="modal-bg" id="modal-pstats">
-  <div class="modal" role="dialog" aria-modal="true" tabindex="-1">
-    <h2>📈 Pressure Statistics</h2>
-    <input type="hidden" id="ps-sid">
-    <input type="hidden" id="ps-tid">
-    <label>Mean Pressure</label>
-    <input type="number" id="ps-mean" step="any" placeholder="e.g. 5.2">
-    <label>Std Deviation (σ)</label>
-    <input type="number" id="ps-std" step="any" placeholder="e.g. 0.3">
-    <label>Unit</label>
-    <input type="text" id="ps-unit" placeholder="e.g. kbar">
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('modal-pstats')">Cancel</button>
-      <button class="btn btn-primary" onclick="savePStats()">Save</button>
-    </div>
-  </div>
-</div>
-
-<script>
 // ════════════════════════════════════════════════════════
 //  APP CONSTANTS
 // ════════════════════════════════════════════════════════
@@ -999,8 +64,23 @@ let S={samples:[],simsets:[],activeSimsetId:null,activeSampleId:null,activeThres
 let activeTab={};      // simsetId -> 'grid'|'failed'
 let activeThreshTab={};// tid -> 'grid'|'locked'
 
-function getSample(id){return S.samples.find(s=>s.id===id);}
-function getSimset(id){return S.simsets.find(ss=>ss.id===id);}
+// Phase 5: id-keyed Map caches. Rebuild on array-ref or length change.
+let _smpCache=null,_smpRef=null,_smpLen=-1;
+let _ssCache=null,_ssRef=null,_ssLen=-1;
+function getSample(id){
+  if(_smpCache===null||_smpRef!==S.samples||_smpLen!==S.samples.length){
+    _smpCache=new Map();for(const s of S.samples)_smpCache.set(s.id,s);
+    _smpRef=S.samples;_smpLen=S.samples.length;
+  }
+  return _smpCache.get(id);
+}
+function getSimset(id){
+  if(_ssCache===null||_ssRef!==S.simsets||_ssLen!==S.simsets.length){
+    _ssCache=new Map();for(const ss of S.simsets)_ssCache.set(ss.id,ss);
+    _ssRef=S.simsets;_ssLen=S.simsets.length;
+  }
+  return _ssCache.get(id);
+}
 // Legacy aliases used in thresholding code (maps to simsets for backward compat)
 function getS(id){return getSimset(id);}
 function getT(sid,tid){const s=getSimset(sid);return s&&s.thresholds.find(t=>t.id===tid);}
@@ -1085,8 +165,22 @@ function dismissPersistentBanner(){
   if(el)el.classList.remove('show');
 }
 
+// Phase 5: debounced save. Public save() returns true and schedules a
+// trailing write 250 ms after the last call; flushSave() forces immediate
+// persistence (used by load() cleanup and before unload).
+let _saveTimer=null;
 function save(){
+  if(_saveTimer!==null) return true;
+  _saveTimer=setTimeout(()=>{ _saveTimer=null; _saveImmediate(); },250);
+  return true;
+}
+function flushSave(){
+  if(_saveTimer!==null){ clearTimeout(_saveTimer); _saveTimer=null; }
+  return _saveImmediate();
+}
+function _saveImmediate(){
   try{
+    S._schemaVersion=SCHEMA_VERSION;  // stamp for fast-path on next load
     localStorage.setItem(STORAGE_KEY,JSON.stringify(S));
     if(_saveBlocked){_saveBlocked=false;dismissPersistentBanner();}
     return true;
@@ -1239,6 +333,10 @@ function migrateSample(s){
 function migrate(raw){
   if(!raw||typeof raw!=='object') return null;
   const src = raw.state||raw;
+  // Phase 5 fast path: trust the schema-version stamp from last save().
+  if(src._schemaVersion===SCHEMA_VERSION && src._migrated && Array.isArray(src.simsets) && Array.isArray(src.samples)){
+    return src;
+  }
   // Already migrated to new format?
   if(raw._migrated && Array.isArray(src.simsets)){
     return{
@@ -1289,7 +387,7 @@ function load(){
         if(!Array.isArray(S.sampleCategories))S.sampleCategories=[];
         if(key!==STORAGE_KEY){
           // Only delete the legacy key AFTER confirming the new key was written successfully.
-          const ok=save();
+          const ok=flushSave();
           if(ok){
             try{
               const verify=localStorage.getItem(STORAGE_KEY);
@@ -4569,9 +3667,23 @@ function drawRunHarker(ssid,ox,cwr){
 function toggleTheme(){
   const html=document.documentElement;
   const isLight=html.getAttribute('data-theme')==='light';
-  html.setAttribute('data-theme',isLight?'dark':'light');
-  localStorage.setItem('melts_theme',isLight?'dark':'light');
-  document.getElementById('theme-toggle').textContent=isLight?'🌙':'☀️';
+  const next=isLight?'dark':'light';
+  // Pin eclipse origin to the toggle button (fallback: screen center).
+  const btn=document.getElementById('theme-toggle');
+  if(btn){
+    const r=btn.getBoundingClientRect();
+    html.style.setProperty('--theme-x', (r.left+r.width/2)+'px');
+    html.style.setProperty('--theme-y', (r.top +r.height/2)+'px');
+  }
+  html.classList.add('theme-transition');
+  if(next==='light')html.setAttribute('data-theme','light');
+  else html.removeAttribute('data-theme');
+  localStorage.setItem('melts_theme',next);
+  if(btn){
+    btn.textContent=next==='light'?'☀️':'🌙';
+    btn.setAttribute('aria-pressed',next==='light'?'true':'false');
+  }
+  setTimeout(()=>html.classList.remove('theme-transition'),760);
   // Re-render active Harkers so canvas colours update
   if(S.activePage==='samples')renderSamples();
   if(S.activePage==='runs')renderRuns();
@@ -5518,33 +4630,36 @@ function obSubmitNewProject(){
 // ════════════════════════════════════════════════════════
 //  BOOT
 // ════════════════════════════════════════════════════════
-load();
-if(!Array.isArray(S.simsets))S.simsets=[];
-if(!Array.isArray(S.samples))S.samples=[];
-applyTheme();
-applyCB();
-setTimeout(()=>{loadAppTitle();_updateSubtitle();},50);
-applyEM();
-renderSidebar();
-// restore last page
-const bootPage = S.activePage && ['runs','samples','overview','thresh','settings','pvis'].includes(S.activePage) ? S.activePage : 'runs';
-showPage(bootPage);
+// Vitest skips this block by setting window.__TEST_MODE__ before injection.
+if (typeof window === 'undefined' || !window.__TEST_MODE__) {
+  load();
+  if(!Array.isArray(S.simsets))S.simsets=[];
+  if(!Array.isArray(S.samples))S.samples=[];
+  applyTheme();
+  applyCB();
+  setTimeout(()=>{loadAppTitle();_updateSubtitle();},50);
+  applyEM();
+  renderSidebar();
+  // restore last page
+  const _bootPage = S.activePage && ['runs','samples','overview','thresh','settings','pvis'].includes(S.activePage) ? S.activePage : 'runs';
+  showPage(_bootPage);
 
-// First-run check — show the onboarding overlay if this looks like a brand-new project.
-// Done AFTER showPage() so the underlying page is rendered when the user dismisses.
-if(_needsOnboarding()){
-  setTimeout(showOnboarding, 50);
-}
-
-// ?test=1 query param runs the built-in self-test suite on load (output in console).
-try{
-  if(new URLSearchParams(location.search).get('test')==='1'){
-    setTimeout(()=>{ try{ runUnitTests(); }catch(e){console.error('runUnitTests threw:',e);} },200);
+  // First-run check — show the onboarding overlay if this looks like a brand-new project.
+  // Done AFTER showPage() so the underlying page is rendered when the user dismisses.
+  if(_needsOnboarding()){
+    setTimeout(showOnboarding, 50);
   }
-}catch(e){console.error('test-on-load probe failed:',e);}
 
-// Export-nag: gentle reminder if data hasn't been exported in 14+ days.
-setTimeout(_checkExportNag,1000);
+  // ?test=1 query param runs the built-in self-test suite on load (output in console).
+  try{
+    if(new URLSearchParams(location.search).get('test')==='1'){
+      setTimeout(()=>{ try{ runUnitTests(); }catch(e){console.error('runUnitTests threw:',e);} },200);
+    }
+  }catch(e){console.error('test-on-load probe failed:',e);}
+
+  // Export-nag: gentle reminder if data hasn't been exported in 14+ days.
+  setTimeout(_checkExportNag,1000);
+}
 
 // ═══════════════════════════════════════════════
 // Unit Tests T2-T8 — call runUnitTests() in console
@@ -5835,7 +4950,60 @@ function exportPVisRun(ssId){
   a.href=expC.toDataURL('image/png'); a.click();
   toast('Pressure Viz exported ✓');
 }
-</script>
 
-</body>
-</html>
+// ════════════════════════════════════════════════════════
+//  Phase 4b: delegated event router + small handler wrappers.
+//  Markup uses data-action="<fnName>" plus data-a1, data-a2, …
+//  for positional string args. For non-click events use
+//  data-action-<event>, e.g. data-action-change.
+// ════════════════════════════════════════════════════════
+function _hTitleBlur(){ saveAppTitle(this.textContent); }
+function _hTitleKeydown(e){ if(e.key==='Enter'){ e.preventDefault(); this.blur(); } }
+function _hRunTypeChange(){ syncRunType(this.value); }
+function _hSimTotalChange(){ syncSimTotal(this.value); }
+function _hResetInput(){ const b=document.getElementById('reset-confirm-btn'); if(b) b.disabled=this.value.trim()!=='RESET'; }
+function _hImportFileClick(){ document.getElementById('import-file').click(); }
+function _hObFileClick(){ document.getElementById('ob-existing-file').click(); }
+function _hObSkip(e){ e.preventDefault(); obSkip(); }
+
+const _DELEG_EVENTS = [
+  ['click',     'data-action',           'action'],
+  ['change',    'data-action-change',    'actionChange'],
+  ['input',     'data-action-input',     'actionInput'],
+  ['focusout',  'data-action-blur',      'actionBlur'],
+  ['keydown',   'data-action-keydown',   'actionKeydown'],
+  ['dragstart', 'data-action-dragstart', 'actionDragstart'],
+  ['dragend',   'data-action-dragend',   'actionDragend'],
+  ['dragover',  'data-action-dragover',  'actionDragover'],
+  ['dragleave', 'data-action-dragleave', 'actionDragleave'],
+  ['drop',      'data-action-drop',      'actionDrop'],
+];
+function _initDelegated(){
+  _DELEG_EVENTS.forEach(([evt, attr, dsKey])=>{
+    document.addEventListener(evt, (e)=>{
+      const el = e.target.closest && e.target.closest('['+attr+']');
+      if(!el) return;
+      const name = el.dataset[dsKey];
+      const fn = window[name];
+      if(typeof fn !== 'function') return;
+      const args = [];
+      let i = 1;
+      while(el.dataset['a'+i] !== undefined){ args.push(el.dataset['a'+i]); i++; }
+      fn.apply(el, [...args, e]);
+    });
+  });
+}
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', _initDelegated, {once:true});
+} else { _initDelegated(); }
+
+// Phase 5: ensure any pending debounced save is flushed before the page goes away.
+window.addEventListener('beforeunload', flushSave);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushSave(); });
+
+// ════════════════════════════════════════════════════════
+//  Phase 4a: expose module-scoped declarations on window so
+//  legacy onclick='fn()' attributes continue to resolve.
+// ════════════════════════════════════════════════════════
+Object.assign(window, {flushSave,_saveImmediate,_hTitleBlur,_hTitleKeydown,_hRunTypeChange,_hSimTotalChange,_hResetInput,_hImportFileClick,_hObFileClick,_hObSkip,APP_VERSION,BACKUP_PREFIX,BACKUP_RING,BATCH_COLORS,CB_PALETTE,CB_SHAPES,DEFAULT_SIM_TOTAL,HK_PALETTE,HK_SHAPES,OB_DEFAULT_COLORS,OXIDES,OXIDE_ALIASES,OXIDE_COLORS_CB,OXIDE_COLORS_DEFAULT,OXIDE_ORDER,OX_LABEL,PDF_GRIDS_PER_PAGE,RANK_PLOT_EXPORT_DPR,RANK_PLOT_PAD_FRAC,S,SAMPLE_NAMES,SCHEMA_VERSION,ST,STEPS,STORAGE_KEY,UNIT_COLORS,UNIT_COLORS_CB,_baseBtnHTML,_batchColor,_batchDragLeave,_batchDragOver,_batchDragSsId,_batchDragStart,_batchDrop,_buildColorPicker,_buildHKLegend,_buildOxideLegend,_catEditMode,_catSave,_cellKey,_checkExportNag,_doResetData,_draftBtnHTML,_drawPVisRun,_getUnit,_hkClickRun,_hkClickSample,_hkDebounce,_initCats,_injectOxideLegend,_isOxGridOn,_lastFocusBeforeModal,_makeSVGMarker,_needsOnboarding,_obUnitRowCounter,_parseRunWR,_populateUnitSelect,_positionEditPopup,_propagateParentRecovery,_renderRunHarkersFromData,_renderSettingsUnits,_saveBlocked,_showAddCatForm,_smpDragEnd,_smpDragId,_smpDragLeave,_smpDragOver,_smpDragStart,_smpDrop,_ssDragEnd,_ssDragId,_ssDragLeave,_ssDragOver,_ssDragStart,_ssDrop,_submitNewCat,_syncColorby,_syncOxGlobalBtn,_threshDragEnd,_threshDragLeave,_threshDragOver,_threshDragStart,_threshDragging,_threshDrop,_tt,_unitDragEnd,_unitDragIdx,_unitDragLeave,_unitDragOver,_unitDragStart,_unitDrop,_updateSubtitle,_validBatches,_validSampleCategories,_validSettings,_validUnits,activeTab,activeThreshTab,addSampleCategory,addSims,applyCB,applyEM,applyPastedP,applyTheme,assignRunToBatch,autoNameSimset,buildCompTable,buildCounterRows,buildFailedList,buildGrid,buildLockedList,buildOxideGrid,buildRankPlot,buildThreshCard,buildThreshMain,closeEditPopup,closeInspector,closeModal,commitRunWR,copyRecord,createSampleOnly,createSimset,createThreshold,cycleCell,deleteBatch,deleteSample,deleteSampleCategory,deleteSimset,deleteThreshold,deleteUnit,discardRunWRDraft,dismissPersistentBanner,drawCBShape,drawHarker,drawRankPlot,drawRunHarker,esc,exportBatchPDF,exportData,exportGridPng,exportHarkerPNG,exportPVisRun,exportRankPlotPNG,exportRunHarkerPNG,getBatch,getBatches,getCBUnitColor,getComps,getFail,getHKStyle,getPct,getRunCount,getS,getSample,getSimset,getSucc,getT,getWRNorm,hideOnboarding,hkColor,importData,isCBMode,load,loadAppTitle,migrate,migrateComp,migrateSample,migrateSampleEntity,migrateSimsetEntity,migrateThresh,migrateThreshEntity,mkComps,mkSample,mkSampleEntity,mkSimset,mkThreshold,normaliseWR,obAddUnitRow,obBackToChoose,obHandleExistingFile,obShowNewProject,obSkip,obSubmitNewProject,openAddBatch,openAddSample,openAddThresh,openAddUnitModal,openEditBatch,openEditPopup,openEditSample,openEditSimset,openEditUnitModal,openModal,openNewSimset,openPStats,openPasteP,openRelinkModal,openViewRecord,pasteWR,previewRunWR,recoverComp,relinkOrphan,removeRunWR,removeWR,renameSampleCategory,renderAll,renderHarkers,renderHarkersNow,renderOverview,renderPressureViz,renderRunHarkers,renderRuns,renderSamples,renderSettings,renderSidebar,renderThreshCardInPlace,renderThresholding,resetData,runUnitTests,sanitizeCompWR,sanitizeWR,save,saveAppTitle,saveBatch,saveDefaultThreshold,saveDefaultThresholdInline,saveEditBatch,saveEditSample,savePStats,saveSettings,saveUnitModal,selSamplePage,selThresh,selectSimset,setNote,setTab,setThreshTab,showOnboarding,showPage,showPersistentBanner,smartTick,snapshotBeforeImport,statusChip,syncRunType,syncSimTotal,toast,toastUndo,toggleCB,toggleEditMode,toggleOxGrid,toggleOxGridAll,toggleRunHarkerPanel,toggleSampleInCategory,toggleTheme,toggleThresh,undoSims,updateThreshBadge
+});

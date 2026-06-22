@@ -1,0 +1,24 @@
+<!-- Re-link Orphaned Run Modal -->
+<div class="modal-bg" id="modal-relink">
+  <div class="modal rl-modal" role="dialog" aria-modal="true" tabindex="-1">
+    <h2>🔗 Re-link Run to Sample</h2>
+    <p class="modal-sub">This run has no parent sample (it was deleted). Choose a new parent sample to re-link it.</p>
+    <input type="hidden" id="rl-ssid">
+    <label>Run <span class="opt-label-mut">(read-only)</span></label>
+    <input type="text" id="rl-run-name" readonly class="rl-ro">
+    <label>New Parent Sample <span class="req-star">*</span></label>
+    <select id="rl-sample-sel" class="rl-mb-4"></select>
+    <div id="rl-sample-preview" class="rl-preview"></div>
+    <div class="modal-footer">
+      <button class="btn" data-action="closeModal" data-a1="modal-relink">Cancel</button>
+      <button class="btn btn-primary" data-action="relinkOrphan">🔗 Re-link</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .rl-modal{max-width:440px}
+  .rl-ro{opacity:.7;cursor:default}
+  .rl-mb-4{margin-bottom:4px}
+  .rl-preview{font-size:11px;color:var(--text-muted);min-height:16px;margin-bottom:8px}
+</style>

@@ -1,0 +1,19 @@
+<!-- Add Batch Modal -->
+<div class="modal-bg" id="modal-add-batch">
+  <div class="modal ab-modal" role="dialog" aria-modal="true" tabindex="-1">
+    <h2>📦 New Batch</h2>
+    <label>Batch Name</label>
+    <input id="batch-name-in" class="m-input-lg" type="text" placeholder="e.g. TIC High-P Series">
+    <label>Short Note <span class="opt-label-mut ab-italic">(displayed in Batches view)</span></label>
+    <input id="batch-note-in" class="m-input-lg mb-16" type="text" placeholder="Brief description...">
+    <div class="row-end">
+      <button class="btn" data-action="closeModal" data-a1="modal-add-batch">Cancel</button>
+      <button class="btn btn-primary" data-action="saveBatch">Create Batch</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .ab-modal{max-width:420px}
+  .ab-italic{font-style:italic}
+</style>

@@ -1,0 +1,89 @@
+---
+import '../styles/global.css';
+import OnboardingOverlay from '../components/OnboardingOverlay.astro';
+import PersistentBanner from '../components/PersistentBanner.astro';
+import Header from '../components/Header.astro';
+import EditAddPopup from '../components/EditAddPopup.astro';
+import Toast from '../components/Toast.astro';
+import UtilBar from '../components/UtilBar.astro';
+import Sidebar from '../components/Sidebar.astro';
+import RightRail from '../components/RightRail.astro';
+import SamplesPage from '../components/pages/SamplesPage.astro';
+import RunsPage from '../components/pages/RunsPage.astro';
+import OverviewPage from '../components/pages/OverviewPage.astro';
+import ThresholdsPage from '../components/pages/ThresholdsPage.astro';
+import PressureVizPage from '../components/pages/PressureVizPage.astro';
+import SettingsPage from '../components/pages/SettingsPage.astro';
+import AddBatchModal from '../components/modals/AddBatchModal.astro';
+import EditBatchModal from '../components/modals/EditBatchModal.astro';
+import ConfirmResetModal from '../components/modals/ConfirmResetModal.astro';
+import PasteSummaryModal from '../components/modals/PasteSummaryModal.astro';
+import PastePModal from '../components/modals/PastePModal.astro';
+import ViewRecordModal from '../components/modals/ViewRecordModal.astro';
+import AddSampleModal from '../components/modals/AddSampleModal.astro';
+import UnitModal from '../components/modals/UnitModal.astro';
+import NewSimsetModal from '../components/modals/NewSimsetModal.astro';
+import EditSampleModal from '../components/modals/EditSampleModal.astro';
+import RelinkModal from '../components/modals/RelinkModal.astro';
+import AddThreshModal from '../components/modals/AddThreshModal.astro';
+import PStatsModal from '../components/modals/PStatsModal.astro';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'self' blob:; child-src 'self' blob:" />
+  <title>rhyolite-MELTS Tracker v0.20</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌋</text></svg>" />
+  <!-- FOUC guard: set data-theme synchronously before paint. Matches the
+       storage key used by toggleTheme()/applyTheme() in legacy.js. -->
+  <script is:inline>
+    (function(){
+      try{
+        var t = localStorage.getItem('melts_theme');
+        if (t === 'light') document.documentElement.setAttribute('data-theme','light');
+      } catch (_) {}
+    })();
+  </script>
+</head>
+<body>
+  <OnboardingOverlay />
+  <PersistentBanner />
+  <Header />
+  <EditAddPopup />
+  <Toast />
+  <UtilBar />
+
+  <AddBatchModal />
+  <EditBatchModal />
+
+  <!-- APP BODY — sidebar + pages as siblings (V3 proven pattern) -->
+  <div class="app-body">
+    <Sidebar />
+    <SamplesPage />
+    <RunsPage />
+    <OverviewPage />
+    <ThresholdsPage />
+    <PressureVizPage />
+    <SettingsPage />
+    <RightRail />
+  </div>
+
+  <!-- ══ MODALS ══ -->
+  <ConfirmResetModal />
+  <PasteSummaryModal />
+  <PastePModal />
+  <ViewRecordModal />
+  <AddSampleModal />
+  <UnitModal />
+  <NewSimsetModal />
+  <EditSampleModal />
+  <RelinkModal />
+  <AddThreshModal />
+  <PStatsModal />
+
+  <script is:inline src="/legacy.js"></script>
+  <script is:inline src="/cloudSync.js"></script>
+</body>
+</html>

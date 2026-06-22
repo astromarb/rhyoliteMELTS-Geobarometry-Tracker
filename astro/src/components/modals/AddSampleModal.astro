@@ -1,0 +1,26 @@
+<!-- Add Sample -->
+<div class="modal-bg" id="modal-add-sample">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1">
+    <h2>✦ Add Sample</h2>
+    <p class="modal-sub">Register a new parent sample (whole-rock composition).</p>
+    <label>Sample Name / ID</label>
+    <input type="text" id="as-name" placeholder="e.g. KCP-109-X">
+    <label>Notes <span class="opt-label">(optional)</span></label>
+    <textarea id="as-notes" rows="2" class="resize-v" placeholder="Any additional notes…"></textarea>
+    <label>Rock Type <span class="opt-label">(optional)</span></label>
+    <input type="text" id="as-rocktype" placeholder="e.g. Rhyolite, Dacite, Basalt…">
+    <label>Geological Unit <span class="opt-label">(optional)</span></label>
+    <select id="as-unit-id" class="as-unit-sel">
+      <option value="">— None / Unassigned —</option>
+    </select>
+    <div id="as-unit-preview" class="hint-sm"></div>
+    <div class="modal-footer">
+      <button class="btn" data-action="closeModal" data-a1="modal-add-sample">Cancel</button>
+      <button class="btn btn-primary" data-action="createSampleOnly">Create Sample</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .as-unit-sel{margin-bottom:4px}
+</style>

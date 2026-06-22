@@ -1,0 +1,23 @@
+<!-- Confirm-reset modal (requires typed "RESET" to enable destroy button) -->
+<div class="modal-bg" id="modal-confirm-reset">
+  <div class="modal reset-modal" role="dialog" aria-modal="true" tabindex="-1">
+    <h2 class="reset-title">🗑 Reset All Data</h2>
+    <p class="modal-sub">This will <strong>permanently erase</strong> every sample, run, threshold, batch, and setting in this browser. Your most recent state will be kept as a backup snapshot (last 3 are retained) — but only for this browser. Export first if you might need this data again.</p>
+    <p class="reset-instr">To confirm, type <strong class="reset-token">RESET</strong> below.</p>
+    <input id="reset-confirm-input" type="text" placeholder="Type RESET" autocomplete="off"
+      data-action-input="_hResetInput"
+      class="reset-input">
+    <div class="modal-footer">
+      <button class="btn" data-action="closeModal" data-a1="modal-confirm-reset">Cancel</button>
+      <button class="btn btn-danger" id="reset-confirm-btn" disabled data-action="_doResetData">Permanently Reset</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .reset-modal{max-width:480px;border:1px solid var(--red)}
+  .reset-title{color:var(--red)}
+  .reset-instr{font-size:12px;color:var(--text-muted);margin-bottom:10px}
+  .reset-token{color:var(--red);font-family:var(--mono)}
+  .reset-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:8px 10px;font-family:var(--mono);font-size:14px;margin-bottom:14px;letter-spacing:2px}
+</style>

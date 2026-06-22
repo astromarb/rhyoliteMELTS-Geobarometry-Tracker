@@ -1,0 +1,20 @@
+<!-- ─────────────── HEADER (v0.20 redesigned) ─────────────── -->
+<header class="app-header" role="banner">
+  <div class="brand-block">
+    <div class="brand-mark" aria-hidden="true">🌋</div>
+    <div class="brand-text">
+      <div class="brand-name" id="app-title" contenteditable="true" spellcheck="false"
+           role="textbox" aria-label="Project title (click to edit)"
+           title="Click to edit the project title"
+           data-action-blur="_hTitleBlur"
+           data-action-keydown="_hTitleKeydown">rhyolite-MELTS Tracker</div>
+      <div class="brand-meta" id="brand-sub-line"><span class="meta-empty">No owner set — configure in Settings</span></div>
+    </div>
+  </div>
+  <div class="header-controls">
+    <span class="version-chip" id="version-chip" title="App version">v0.20</span>
+    <button class="btn btn-sm header-ctrl-btn" id="theme-toggle" data-action="toggleTheme" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" aria-pressed="false">🌙</button>
+    <button class="btn btn-sm header-ctrl-btn" id="cb-toggle" data-action="toggleCB" title="Toggle colorblind-safe palette" aria-label="Toggle colorblind mode" aria-pressed="false">👁</button>
+  </div>
+</header>
+<input type="file" id="import-file" class="is-hidden" accept=".json" data-action-change="importData">

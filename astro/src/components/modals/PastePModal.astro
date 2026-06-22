@@ -1,0 +1,25 @@
+<!-- Paste P Results -->
+<div class="modal-bg" id="modal-paste-p">
+  <div class="modal pp-modal" role="dialog" aria-modal="true" tabindex="-1">
+    <h2>📋 Paste Pressure Results</h2>
+    <p class="modal-sub">Paste your tab-separated table from Excel.<br>
+      Format per line: <code>SAMPLE-MC-NUM-MELTS_Auto&nbsp;&nbsp;VALUE</code><br>
+      A numeric value → 🟩 P solution obtained &nbsp;|&nbsp; <code>-</code> → 🟥 No solution found.<br>
+      Cells not in the list remain unchanged.</p>
+    <input type="hidden" id="pp-sid">
+    <input type="hidden" id="pp-tid">
+    <label>Paste table here</label>
+    <textarea id="pp-data" rows="10" class="resize-v pp-data" placeholder="KCP-109-A-MC-148-MELTS_Auto&#9;158&#10;KCP-109-A-MC-1-MELTS_Auto&#9;-"></textarea>
+    <div id="pp-preview" class="pp-preview"></div>
+    <div class="modal-footer">
+      <button class="btn" data-action="closeModal" data-a1="modal-paste-p">Cancel</button>
+      <button class="btn btn-primary" data-action="applyPastedP">Apply</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .pp-modal{max-width:520px}
+  .pp-data{font-family:var(--mono);font-size:11px}
+  .pp-preview{font-size:11px;color:var(--text-muted);margin-top:6px}
+</style>

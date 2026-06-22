@@ -1,0 +1,33 @@
+<!-- Add Threshold -->
+<div class="modal-bg" id="modal-add-thresh">
+  <div class="modal" role="dialog" aria-modal="true" tabindex="-1">
+    <h2>📊 Add Threshold</h2>
+    <p class="modal-sub">New threshold tracker for <strong id="at-sname"></strong>.<br>Each threshold gets its own full 200-cell composition grid.</p>
+    <input type="hidden" id="at-sid">
+    <label>Threshold Name</label>
+    <input type="text" id="at-name" placeholder="e.g. THRESHOLD-4">
+    <label>Cutoff Value</label>
+    <input type="text" id="at-cutoff" placeholder="e.g. 4.0">
+    <label>Pressure Unit <span class="req-star">*</span></label>
+    <select id="at-unit" class="at-mb-4">
+      <option value="">— Select unit —</option>
+      <option value="MPa">MPa (megapascals)</option>
+      <option value="kbar">kbar (kilobars)</option>
+      <option value="GPa">GPa (gigapascals)</option>
+      <option value="bar">bar</option>
+      <option value="wt%">wt%</option>
+    </select>
+    <div class="at-unit-hint">Pasted P values will be interpreted in this unit. Must be chosen at creation time to avoid silent unit confusion.</div>
+    <label>Description <span class="opt-label">(optional)</span></label>
+    <textarea id="at-desc" rows="2" class="resize-v" placeholder="Brief notes…"></textarea>
+    <div class="modal-footer">
+      <button class="btn" data-action="closeModal" data-a1="modal-add-thresh">Cancel</button>
+      <button class="btn btn-primary" data-action="createThreshold">Create</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .at-mb-4{margin-bottom:4px}
+  .at-unit-hint{font-size:10px;color:var(--text-muted);margin-bottom:8px}
+</style>

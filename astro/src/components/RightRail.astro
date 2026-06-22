@@ -1,0 +1,16 @@
+<!-- ─────────────── RIGHT-RAIL NAVIGATION (v0.20) ─────────────── -->
+<nav class="right-rail" role="navigation" aria-label="App pages">
+  <div class="right-rail-label">Pages</div>
+  <div class="rr-tablist" role="tablist" aria-label="App pages">
+    <button class="nav-tab" data-page="samples"  role="tab" aria-selected="false" data-action="showPage" data-a1="samples"><span class="nav-icon" aria-hidden="true">🗄</span><span class="nav-label">Samples</span></button>
+    <button class="nav-tab active" data-page="runs" role="tab" aria-selected="true"  data-action="showPage" data-a1="runs"><span class="nav-icon" aria-hidden="true">🔬</span><span class="nav-label">Runs</span></button>
+    <button class="nav-tab" data-page="overview" role="tab" aria-selected="false" data-action="showPage" data-a1="overview"><span class="nav-icon" aria-hidden="true">📦</span><span class="nav-label">Batches</span></button>
+    <button class="nav-tab" data-page="thresh"   role="tab" aria-selected="false" data-action="showPage" data-a1="thresh"><span class="nav-icon" aria-hidden="true">📊</span><span class="nav-label">P&nbsp;Thresh</span><span id="thresh-badge" class="nav-badge is-hidden">0</span></button>
+    <button class="nav-tab" data-page="pvis"     role="tab" aria-selected="false" data-action="showPage" data-a1="pvis"><span class="nav-icon" aria-hidden="true">🔭</span><span class="nav-label">Pressure&nbsp;Viz</span></button>
+    <button class="nav-tab" data-page="settings" role="tab" aria-selected="false" data-action="showPage" data-a1="settings"><span class="nav-icon" aria-hidden="true">⚙</span><span class="nav-label">Settings</span></button>
+  </div>
+</nav>
+
+<style>
+  .rr-tablist{display:flex;flex-direction:column;gap:4px}
+</style>
